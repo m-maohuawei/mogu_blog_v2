@@ -10,18 +10,18 @@ import com.moxi.mogublog.utils.ResultUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.Map;
 
 /**
- * 索引维护ReastApi
+ * 索引维护 ReastApi
  *
  * @author 陌溪
- * @create 2020年1月15日16:44:27
+ * @date 2020年1月15日16:44:27
  */
 @RestController
 @RequestMapping("/search")
@@ -29,7 +29,7 @@ import java.util.Map;
 @Slf4j
 public class SearchIndexRestApi {
 
-    @Autowired
+    @Resource
     private SearchFeignClient searchFeignClient;
 
     @AuthorityVerify
@@ -41,9 +41,9 @@ public class SearchIndexRestApi {
         String result = searchFeignClient.initElasticSearchIndex();
         Map<String, Object> blogMap = (Map<String, Object>) JsonUtils.jsonToObject(result, Map.class);
         if (SysConf.SUCCESS.equals(blogMap.get(SysConf.CODE))) {
-            return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
+            return ResultUtil.successWithMessage(MessageConf.OPERATION_SUCCESS);
         } else {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.OPERATION_FAIL);
+            return ResultUtil.errorWithMessage(blogMap.get(SysConf.MESSAGE).toString());
         }
     }
 
@@ -56,9 +56,9 @@ public class SearchIndexRestApi {
         String result = searchFeignClient.initSolrIndex();
         Map<String, Object> blogMap = (Map<String, Object>) JsonUtils.jsonToObject(result, Map.class);
         if (SysConf.SUCCESS.equals(blogMap.get(SysConf.CODE))) {
-            return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
+            return ResultUtil.successWithMessage(MessageConf.OPERATION_SUCCESS);
         } else {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.OPERATION_FAIL);
+            return ResultUtil.errorWithMessage(blogMap.get(SysConf.MESSAGE).toString());
         }
     }
 }

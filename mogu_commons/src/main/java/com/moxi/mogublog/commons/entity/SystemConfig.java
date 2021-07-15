@@ -7,11 +7,9 @@ import com.moxi.mougblog.base.entity.SuperEntity;
 import lombok.Data;
 
 /**
- * <p>
  * 系统配置表
- * </p>
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @since 2020年1月21日09:02:29
  */
 @Data
@@ -45,6 +43,30 @@ public class SystemConfig extends SuperEntity<SystemConfig> {
     private String qiNiuArea;
 
     /**
+     * Minio远程连接地址
+     */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String minioEndPoint;
+
+    /**
+     * Minio公钥
+     */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String minioAccessKey;
+
+    /**
+     * Minio私钥
+     */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String minioSecretKey;
+
+    /**
+     * Minio桶
+     */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String minioBucket;
+
+    /**
      * 图片是否上传七牛云 (0:否， 1：是)
      */
     private String uploadQiNiu;
@@ -55,21 +77,37 @@ public class SystemConfig extends SuperEntity<SystemConfig> {
     private String uploadLocal;
 
     /**
-     * 图片显示优先级（ 1 展示 七牛云,  0 本地）
+     * 文件是否上传Minio (0:否， 1：是)
+     */
+    private String uploadMinio;
+
+    /**
+     * 标题图片显示优先级（ 0:本地  1: 七牛云 2: Minio）
      */
     private String picturePriority;
 
     /**
-     * 本地存储图片服务器，域名前缀：   http://localhost:8600
+     * 博客详情图片显示优先级（ 0:本地  1: 七牛云 2: Minio）
+     */
+    private String contentPicturePriority;
+
+    /**
+     * 本地存储图片服务器，域名前缀:   http://localhost:8600
      */
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String localPictureBaseUrl;
 
     /**
-     * 七牛云存储图片服务器，域名前缀： http://images.moguit.cn
+     * 七牛云存储图片服务器，域名前缀: http://images.moguit.cn
      */
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String qiNiuPictureBaseUrl;
+
+    /**
+     * Minio服务器文件域名前缀： http://minio.moguit.cn
+     */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String minioPictureBaseUrl;
 
     /**
      * 邮箱账号
@@ -107,4 +145,29 @@ public class SystemConfig extends SuperEntity<SystemConfig> {
      */
     private String startEmailNotification;
 
+    /**
+     * 编辑器模式，(0：富文本编辑器CKEditor，1：markdown编辑器Veditor)
+     */
+    private String editorModel;
+
+    /**
+     * 主题颜色
+     */
+    private String themeColor;
+
+    /**
+     * 仪表盘通知【首次进入时弹出】
+     */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String dashboardNotification;
+
+    /**
+     * 是否开启仪表盘通知【0 关闭，1 开启】
+     */
+    private String openDashboardNotification;
+
+    /**
+     * 是否开启用户邮件激活功能【0 关闭，1 开启】
+     */
+    private String openEmailActivate;
 }

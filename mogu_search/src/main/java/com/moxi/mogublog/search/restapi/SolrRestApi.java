@@ -1,7 +1,6 @@
 //package com.moxi.mogublog.search.restapi;
 //
 //import com.moxi.mogublog.commons.entity.Blog;
-//import com.moxi.mogublog.commons.feign.BlogFeignClient;
 //import com.moxi.mogublog.commons.feign.WebFeignClient;
 //import com.moxi.mogublog.search.global.MessageConf;
 //import com.moxi.mogublog.search.global.SysConf;
@@ -21,6 +20,12 @@
 //import java.util.List;
 //import java.util.Map;
 //
+///**
+// * Solr搜索相关接口
+// *
+// * @author 陌溪
+// * @date 2020/9/15 15:22
+// */
 //@RestController
 //@RequestMapping("/search")
 //@Api(value = "Solr相关接口", tags = {"Solr相关接口"})
@@ -46,9 +51,7 @@
 //        if (StringUtils.isEmpty(keywords)) {
 //            return ResultUtil.result(SysConf.ERROR, MessageConf.KEYWORD_IS_NOT_EMPTY);
 //        }
-//
-//        log.error("使用Solr搜索：keywords=" + keywords);
-//
+//        log.error("使用Solr搜索：keywords:" + keywords);
 //        Map<String, Object> map = solrSearchService.search(collection, keywords, currentPage, pageSize);
 //        return ResultUtil.result(SysConf.SUCCESS, map);
 //    }
@@ -56,9 +59,8 @@
 //    @ApiOperation(value = "通过博客Uid添加Solr索引", notes = "通过博客Uid添加Solr索引", response = String.class)
 //    @PostMapping("/addSolrIndexByUid")
 //    public String addSolrIndexByUid(@RequestParam(required = true) String uid) {
-//
+//        log.info("通过博客Uid添加Solr索引");
 //        String result = webFeignClient.getBlogByUid(uid);
-//
 //        Blog blog = WebUtils.getData(result, Blog.class);
 //        if (blog == null) {
 //            return ResultUtil.result(SysConf.ERROR, MessageConf.INSERT_SUCCESS);
@@ -86,7 +88,6 @@
 //        return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
 //    }
 //
-//
 //    @ApiOperation(value = "通过uids删除Solr博客索引", notes = "通过uids删除Solr博客索引", response = String.class)
 //    @PostMapping("/deleteSolrIndexByUids")
 //    public String deleteSolrIndexByUids(@RequestParam(required = true) String uids) {
@@ -98,26 +99,21 @@
 //        return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
 //    }
 //
-//
 //    @ApiOperation(value = "Solr初始化索引", notes = "Solr初始化索引", response = String.class)
 //    @PostMapping("/initSolrIndex")
 //    public String initSolrIndex() throws ParseException {
-//
+//        log.info("使用Solr初始化全文索引");
 //        //清除所有索引
 //        solrSearchService.deleteAllIndex(collection);
-//
 //        Long page = 1L;
 //        Long row = 15L;
 //        Integer size = 0;
 //        do {
 //            // 查询blog信息
-//            String result = webFeignClient.getNewBlog(page, row);
-//
+//            String result = webFeignClient.getBlogBySearch(page, row);
 //            //构建blog
 //            List<Blog> blogList = WebUtils.getList(result, Blog.class);
-//
 //            size = blogList.size();
-//
 //            //存入索引库
 //            solrSearchService.initIndex(collection, blogList);
 //            //翻页

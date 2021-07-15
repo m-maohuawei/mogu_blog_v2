@@ -23,21 +23,19 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 /**
- * <p>
  * 博客分类表 服务实现类
- * </p>
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @since 2018-09-08
  */
 @Service
 public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSort> implements BlogSortService {
 
     @Autowired
-    BlogSortService blogSortService;
+    private BlogSortService blogSortService;
 
     @Autowired
-    BlogService blogService;
+    private BlogService blogService;
 
     @Override
     public IPage<BlogSort> getPageList(BlogSortVO blogSortVO) {
@@ -45,11 +43,21 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
         if (StringUtils.isNotEmpty(blogSortVO.getKeyword()) && !StringUtils.isEmpty(blogSortVO.getKeyword().trim())) {
             queryWrapper.like(SQLConf.SORT_NAME, blogSortVO.getKeyword().trim());
         }
+        if(StringUtils.isNotEmpty(blogSortVO.getOrderByAscColumn())) {
+            // 将驼峰转换成下划线
+            String column = StringUtils.underLine(new StringBuffer(blogSortVO.getOrderByAscColumn())).toString();
+            queryWrapper.orderByAsc(column);
+        }else if(StringUtils.isNotEmpty(blogSortVO.getOrderByDescColumn())) {
+            // 将驼峰转换成下划线
+            String column = StringUtils.underLine(new StringBuffer(blogSortVO.getOrderByDescColumn())).toString();
+            queryWrapper.orderByDesc(column);
+        } else {
+            queryWrapper.orderByDesc(SQLConf.SORT);
+        }
         Page<BlogSort> page = new Page<>();
         page.setCurrent(blogSortVO.getCurrentPage());
         page.setSize(blogSortVO.getPageSize());
         queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-        queryWrapper.orderByDesc(SQLConf.SORT);
         IPage<BlogSort> pageList = blogSortService.page(page, queryWrapper);
         return pageList;
     }
@@ -71,7 +79,7 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
         queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
         BlogSort tempSort = blogSortService.getOne(queryWrapper);
         if (tempSort != null) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.ENTITY_EXIST);
+            return ResultUtil.errorWithMessage(MessageConf.ENTITY_EXIST);
         }
 
         BlogSort blogSort = new BlogSort();
@@ -80,13 +88,12 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
         blogSort.setSort(blogSortVO.getSort());
         blogSort.setStatus(EStatus.ENABLE);
         blogSort.insert();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.INSERT_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.INSERT_SUCCESS);
     }
 
     @Override
     public String editBlogSort(BlogSortVO blogSortVO) {
         BlogSort blogSort = blogSortService.getById(blogSortVO.getUid());
-
         /**
          * 判断需要编辑的博客分类是否存在
          */
@@ -96,23 +103,24 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
             queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
             BlogSort tempSort = blogSortService.getOne(queryWrapper);
             if (tempSort != null) {
-                return ResultUtil.result(SysConf.ERROR, MessageConf.ENTITY_EXIST);
+                return ResultUtil.errorWithMessage(MessageConf.ENTITY_EXIST);
             }
         }
-
         blogSort.setContent(blogSortVO.getContent());
         blogSort.setSortName(blogSortVO.getSortName());
         blogSort.setSort(blogSortVO.getSort());
         blogSort.setStatus(EStatus.ENABLE);
         blogSort.setUpdateTime(new Date());
         blogSort.updateById();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.UPDATE_SUCCESS);
+        // 删除和博客相关的Redis缓存
+        blogService.deleteRedisByBlogSort();
+        return ResultUtil.successWithMessage(MessageConf.UPDATE_SUCCESS);
     }
 
     @Override
     public String deleteBatchBlogSort(List<BlogSortVO> blogSortVoList) {
         if (blogSortVoList.size() <= 0) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.PARAM_INCORRECT);
+            return ResultUtil.errorWithMessage(MessageConf.PARAM_INCORRECT);
         }
         List<String> uids = new ArrayList<>();
 
@@ -126,22 +134,20 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
         blogQueryWrapper.in(SQLConf.BLOG_SORT_UID, uids);
         Integer blogCount = blogService.count(blogQueryWrapper);
         if (blogCount > 0) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.BLOG_UNDER_THIS_SORT);
+            return ResultUtil.errorWithMessage(MessageConf.BLOG_UNDER_THIS_SORT);
         }
-
         Collection<BlogSort> blogSortList = blogSortService.listByIds(uids);
-
         blogSortList.forEach(item -> {
             item.setUpdateTime(new Date());
             item.setStatus(EStatus.DISABLED);
         });
-
         Boolean save = blogSortService.updateBatchById(blogSortList);
-
         if (save) {
-            return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
+            // 删除和博客相关的Redis缓存
+            blogService.deleteRedisByBlogSort();
+            return ResultUtil.successWithMessage(MessageConf.DELETE_SUCCESS);
         } else {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.DELETE_FAIL);
+            return ResultUtil.errorWithMessage(MessageConf.DELETE_FAIL);
         }
     }
 
@@ -160,34 +166,25 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
         BlogSort maxSort = list.get(0);
 
         if (StringUtils.isEmpty(maxSort.getUid())) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.PARAM_INCORRECT);
+            return ResultUtil.errorWithMessage(MessageConf.PARAM_INCORRECT);
         }
         if (maxSort.getUid().equals(blogSort.getUid())) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.THIS_SORT_IS_TOP);
+            return ResultUtil.errorWithMessage(MessageConf.THIS_SORT_IS_TOP);
         }
-
         Integer sortCount = maxSort.getSort() + 1;
-
         blogSort.setSort(sortCount);
-
         blogSort.setUpdateTime(new Date());
-
         blogSort.updateById();
-
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.OPERATION_SUCCESS);
     }
 
     @Override
     public String blogSortByClickCount() {
         QueryWrapper<BlogSort> queryWrapper = new QueryWrapper();
-
         queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-
         // 按点击从高到低排序
         queryWrapper.orderByDesc(SQLConf.CLICK_COUNT);
-
         List<BlogSort> blogSortList = blogSortService.list(queryWrapper);
-
         // 设置初始化最大的sort值
         Integer maxSort = blogSortList.size();
         for (BlogSort item : blogSortList) {
@@ -195,14 +192,13 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
             item.setUpdateTime(new Date());
         }
         blogSortService.updateBatchById(blogSortList);
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.OPERATION_SUCCESS);
     }
 
     @Override
     public String blogSortByCite() {
         // 定义Map   key：tagUid,  value: 引用量
         Map<String, Integer> map = new HashMap<>();
-
         QueryWrapper<BlogSort> blogSortQueryWrapper = new QueryWrapper<>();
         blogSortQueryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
         List<BlogSort> blogSortList = blogSortService.list(blogSortQueryWrapper);
@@ -210,7 +206,6 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
         blogSortList.forEach(item -> {
             map.put(item.getUid(), 0);
         });
-
         QueryWrapper<Blog> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
         queryWrapper.eq(SQLConf.IS_PUBLISH, EPublish.PUBLISH);
@@ -233,15 +228,14 @@ public class BlogSortServiceImpl extends SuperServiceImpl<BlogSortMapper, BlogSo
             item.setUpdateTime(new Date());
         });
         blogSortService.updateBatchById(blogSortList);
-
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.OPERATION_SUCCESS);
     }
 
     @Override
     public BlogSort getTopOne() {
         QueryWrapper<BlogSort> blogSortQueryWrapper = new QueryWrapper<>();
         blogSortQueryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-        blogSortQueryWrapper.last("LIMIT 1");
+        blogSortQueryWrapper.last(SysConf.LIMIT_ONE);
         blogSortQueryWrapper.orderByDesc(SQLConf.SORT);
         BlogSort blogSort = blogSortService.getOne(blogSortQueryWrapper);
         return blogSort;

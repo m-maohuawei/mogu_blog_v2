@@ -4,11 +4,8 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
-import com.moxi.mogublog.xo.service.ResourceSortService;
 import com.moxi.mogublog.xo.service.StudyVideoService;
-import com.moxi.mogublog.xo.utils.WebUtil;
 import com.moxi.mogublog.xo.vo.StudyVideoVO;
 import com.moxi.mougblog.base.exception.ThrowableUtils;
 import com.moxi.mougblog.base.validator.group.Delete;
@@ -29,12 +26,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <p>
  * 视频表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2020年1月10日22:44:35
+ * @author 陌溪
+ * @date 2020年1月10日22:44:35
  */
 @RestController
 @RequestMapping("/studyVideo")
@@ -43,12 +38,7 @@ import java.util.List;
 public class StudyVideoRestApi {
 
     @Autowired
-    WebUtil webUtil;
-
-    @Autowired
-    StudyVideoService studyVideoService;
-    @Autowired
-    ResourceSortService resourceSortService;
+    private StudyVideoService studyVideoService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取学习视频列表", notes = "获取学习视频列表", response = String.class)
@@ -57,7 +47,8 @@ public class StudyVideoRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-        return ResultUtil.result(SysConf.SUCCESS, studyVideoService.getPageList(studyVideoVO));
+        log.info("获取学习视频列表: {}", studyVideoVO);
+        return ResultUtil.successWithData(studyVideoService.getPageList(studyVideoVO));
     }
 
     @AvoidRepeatableCommit
@@ -69,6 +60,7 @@ public class StudyVideoRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("增加学习视频: {}", studyVideoVO);
         return studyVideoService.addStudyVideo(studyVideoVO);
     }
 
@@ -80,6 +72,7 @@ public class StudyVideoRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("编辑学习视频: {}", studyVideoVO);
         return studyVideoService.editStudyVideo(studyVideoVO);
     }
 
@@ -91,6 +84,7 @@ public class StudyVideoRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("删除学习视频: {}", studyVideoVOList);
         return studyVideoService.deleteBatchStudyVideo(studyVideoVOList);
     }
 

@@ -19,7 +19,7 @@ export default {
   },
   created() {
     getLink().then(response => {
-      if(response.code == "success") {
+      if(response.code == this.$ECode.SUCCESS) {
         this.linkData = response.data;
       }
     });
@@ -29,8 +29,8 @@ export default {
       var params = new URLSearchParams();
       params.append("uid", item.uid);
       addLinkCount(params).then(response => {
-        if(response.code == "success") {
-          window.location.href = item.url;
+        if(response.code == this.$ECode.SUCCESS) {
+          window.open(item.url, "_blank")
         }
       })
 

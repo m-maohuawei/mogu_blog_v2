@@ -2,7 +2,6 @@ package com.moxi.mogublog.admin.restapi;
 
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.AdminService;
 import com.moxi.mogublog.xo.vo.AdminVO;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 系统设置RestApi
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2018年11月6日下午8:23:36
  */
 
@@ -31,20 +30,13 @@ import org.springframework.web.bind.annotation.*;
 public class SystemRestApi {
 
     @Autowired
-    AdminService adminService;
-
-    /**
-     * 获取关于我的信息
-     *
-     * @author xzx19950624@qq.com
-     * @date 2018年11月6日下午8:57:48
-     */
+    private AdminService adminService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取我的信息", notes = "获取我的信息")
     @GetMapping("/getMe")
     public String getMe() {
-        return ResultUtil.result(SysConf.SUCCESS, adminService.getMe());
+        return ResultUtil.successWithData(adminService.getMe());
     }
 
     @AuthorityVerify

@@ -24,12 +24,25 @@
       <el-button class="filter-item" type="primary" @click="handleAdd" icon="el-icon-edit" v-permission="'/link/add'">添加友链</el-button>
     </div>
 
-    <el-table :data="tableData" style="width: 100%">
+    <el-table :data="tableData"
+              style="width: 100%"
+              @sort-change="changeSort"
+              :default-sort="{prop: 'sort', order: 'descending'}">
       <el-table-column type="selection"></el-table-column>
 
       <el-table-column label="序号" width="60" align="center">
         <template slot-scope="scope">
           <span>{{scope.$index + 1}}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="网站图标" width="80" align="center">
+        <template slot-scope="scope">
+          <img
+            v-if="scope.row.photoList"
+            :src="scope.row.photoList[0]"
+            style="width: 50px;height:50px;"
+          >
         </template>
       </el-table-column>
 
@@ -51,7 +64,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="发布状态" width="100" align="center">
+      <el-table-column label="站长邮箱" width="200" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.email }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="发布状态" width="100" align="center" prop="linkStatus" sortable="custom" :sort-by="['linkStatus']">
         <template slot-scope="scope">
           <template>
             <el-tag v-for="item in linkStatusDictList" :key="item.uid" :type="item.listClass" v-if="scope.row.linkStatus == item.dictValue">{{item.dictLabel}}</el-tag>
@@ -59,37 +78,37 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="点击数" width="100" align="center">
+      <el-table-column label="点击数" width="100" align="center" prop="clickCount" sortable="custom" :sort-by="['clickCount']">
         <template slot-scope="scope">
           <span>{{ scope.row.clickCount }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="排序" width="100" align="center">
+      <el-table-column label="排序" width="100" align="center" prop="sort" sortable="custom" :sort-orders="['ascending', 'descending']">
         <template slot-scope="scope">
           <el-tag type="warning">{{ scope.row.sort }}</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" width="160" align="center">
+      <el-table-column label="创建时间" width="160" align="center" prop="createTime" sortable="custom" :sort-by="['createTime']">
         <template slot-scope="scope">
           <span>{{ scope.row.createTime }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" width="100" align="center">
-        <template slot-scope="scope">
-          <template v-if="scope.row.status == 1">
-            <span>正常</span>
-          </template>
-          <template v-if="scope.row.status == 2">
-            <span>推荐</span>
-          </template>
-          <template v-if="scope.row.status == 0">
-            <span>已删除</span>
-          </template>
-        </template>
-      </el-table-column>
+<!--      <el-table-column label="状态" width="100" align="center">-->
+<!--        <template slot-scope="scope">-->
+<!--          <template v-if="scope.row.status == 1">-->
+<!--            <span>正常</span>-->
+<!--          </template>-->
+<!--          <template v-if="scope.row.status == 2">-->
+<!--            <span>推荐</span>-->
+<!--          </template>-->
+<!--          <template v-if="scope.row.status == 0">-->
+<!--            <span>已删除</span>-->
+<!--          </template>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
 
       <el-table-column label="操作" fixed="right" min-width="240">
         <template slot-scope="scope">
@@ -115,6 +134,16 @@
     <el-dialog :title="title" :visible.sync="dialogFormVisible">
       <el-form :model="form" :rules="rules" ref="form">
 
+        <el-form-item label="网站图标" :label-width="formLabelWidth">
+          <div class="imgBody" v-if="form.photoList">
+            <i class="el-icon-error inputClass" v-show="icon" @click="deletePhoto()" @mouseover="icon = true"></i>
+            <img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="form.photoList[0]" />
+          </div>
+          <div v-else class="uploadImgBody" @click="checkPhoto">
+            <i class="el-icon-plus avatar-uploader-icon"></i>
+          </div>
+        </el-form-item>
+
         <el-form-item label="友链名" :label-width="formLabelWidth" prop="title">
           <el-input v-model="form.title" auto-complete="off"></el-input>
         </el-form-item>
@@ -127,6 +156,9 @@
           <el-input v-model="form.url" auto-complete="off"></el-input>
         </el-form-item>
 
+        <el-form-item label="站长邮箱" :label-width="formLabelWidth" prop="email">
+          <el-input v-model="form.email" auto-complete="off"></el-input>
+        </el-form-item>
 
         <el-form-item label="友链状态" :label-width="formLabelWidth" prop="linkStatus">
           <el-select v-model="form.linkStatus" size="small" placeholder="请选择" style="width:100px">
@@ -149,6 +181,17 @@
         <el-button type="primary" @click="submitForm">确 定</el-button>
       </div>
     </el-dialog>
+
+    <avatar-cropper
+      v-show="imagecropperShow"
+      :key="imagecropperKey"
+      :width="300"
+      :height="300"
+      :url="url"
+      lang-type="zh"
+      @close="close"
+      @crop-upload-success="cropSuccess"
+    />
   </div>
 </template>
 
@@ -161,7 +204,7 @@ import {
   stickLink
 } from "@/api/link";
 import {getListByDictTypeList} from "@/api/sysDictData"
-import { formatData } from "@/utils/webUtils";
+import AvatarCropper from '@/components/AvatarCropper'
 export default {
   data() {
     return {
@@ -177,6 +220,15 @@ export default {
       linkStatusDefault: null, // 友链状态默认值
       formLabelWidth: "120px",
       isEditForm: false,
+      imagecropperShow: false, // 是否显示截图框
+      imagecropperKey: 0,
+      url: process.env.PICTURE_API + "/file/cropperPicture",
+      photoVisible: false, //控制图片选择器的显示
+      photoList: [],
+      fileIds: "",
+      icon: false, //控制删除图标的显示
+      orderByDescColumn: "", // 降序字段
+      orderByAscColumn: "", // 升序字段
       form: {
         uid: null,
         content: "",
@@ -184,12 +236,15 @@ export default {
       },
       rules: {
         title: [
-          {required: true, message: '标题不能为空', trigger: 'blur'},
-          {min: 1, max: 10, message: '长度在1到10个字符'},
+          {required: true, message: '友链名称不能为空', trigger: 'blur'},
+          {min: 1, max: 20, message: '长度在1到20个字符'},
         ],
         url: [
           {required: true, message: 'URL不能为空', trigger: 'blur'},
           {pattern:  /^((https|http|ftp|rtsp|mms)?:\/\/)[^\s]+/, message: '请输入有效的URL'},
+        ],
+        email: [
+          {pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/, message: '请输入正确的邮箱'},
         ],
         linkStatus: [
           {required: true, message: '友链状态不能为空', trigger: 'blur'}
@@ -201,6 +256,9 @@ export default {
       }
     };
   },
+  components: {
+    AvatarCropper
+  },
   created() {
     // 字典查询
     this.getDictList()
@@ -208,13 +266,26 @@ export default {
     this.linkList();
   },
   methods: {
+    // 从后台获取数据,重新排序
+    changeSort (val) {
+      // 根据当前排序重新获取后台数据,一般后台会需要一个排序的参数
+      if(val.order == "ascending") {
+        this.orderByAscColumn = val.prop
+        this.orderByDescColumn = ""
+      } else {
+        this.orderByAscColumn = ""
+        this.orderByDescColumn = val.prop
+      }
+      this.linkList()
+    },
     linkList: function() {
       var params = {};
       params.keyword = this.keyword;
       params.linkStatus = this.linkStatusKeyword
       params.currentPage = this.currentPage;
       params.pageSize = this.pageSize;
-
+      params.orderByDescColumn = this.orderByDescColumn
+      params.orderByAscColumn = this.orderByAscColumn
       getLinkList(params).then(response => {
         this.tableData = response.data.records;
         this.currentPage = response.data.current;
@@ -238,11 +309,9 @@ export default {
      * 字典查询
      */
     getDictList: function () {
-
       var dictTypeList = ['sys_link_status']
-
       getListByDictTypeList(dictTypeList).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           var dictMap = response.data;
           this.linkStatusDictList = dictMap.sys_link_status.list
           if(dictMap.sys_link_status.defaultValue) {
@@ -251,7 +320,28 @@ export default {
         }
       });
     },
+    cropSuccess(resData) {
+      this.imagecropperShow = false
+      this.imagecropperKey = this.imagecropperKey + 1
+      let photoList = []
+      photoList.push(resData[0].url);
+      this.form.photoList = photoList;
+      this.form.fileUid = resData[0].uid
+    },
+    //弹出选择图片框
+    checkPhoto() {
+      this.imagecropperShow = true
+    },
+    close() {
+      this.imagecropperShow = false
+    },
+    deletePhoto: function() {
+      this.form.photoList = null;
+      this.form.fileUid = "";
+      this.icon = false;
+    },
     handleFind: function() {
+      this.currentPage = 1
       this.linkList();
     },
     handleAdd: function() {
@@ -277,25 +367,16 @@ export default {
           let params = {};
           params.uid = row.uid;
           stickLink(params).then(response => {
-            if (response.code == "success") {
+            if (response.code == this.$ECode.SUCCESS) {
               this.linkList();
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消置顶"
-          });
+          this.$commonUtil.message.info("已取消置顶")
         });
     },
     handleDelete: function(row) {
@@ -309,19 +390,16 @@ export default {
           let params = {};
           params.uid = row.uid;
           deleteLink(params).then(response => {
-            console.log(response);
-            this.$message({
-              type: "success",
-              message: response.data
-            });
-            that.linkList();
+            if(response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
+              that.linkList();
+            } else {
+              this.$commonUtil.message.error(response.message)
+            }
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          this.$commonUtil.message.info("已取消删除")
         });
     },
     // 跳转到友链下
@@ -341,35 +419,23 @@ export default {
           if (this.isEditForm) {
             editLink(this.form).then(response => {
               console.log(response);
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
                 this.dialogFormVisible = false;
                 this.linkList();
               } else {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
             });
           } else {
             addLink(this.form).then(response => {
               console.log(response);
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
                 this.dialogFormVisible = false;
                 this.linkList();
               } else {
-                this.$message({
-                  type: "error",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
             });
           }
@@ -380,3 +446,53 @@ export default {
   }
 };
 </script>
+<style scoped>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  margin: 0, 0, 0, 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  text-align: center;
+}
+.imgBody {
+  width: 100px;
+  height: 100px;
+  border: solid 2px #ffffff;
+  float: left;
+  position: relative;
+}
+.uploadImgBody {
+  margin-left: 5px;
+  width: 100px;
+  height: 100px;
+  border: dashed 1px #c0c0c0;
+  float: left;
+  position: relative;
+}
+.uploadImgBody :hover {
+  border: dashed 1px #00ccff;
+}
+.inputClass {
+  position: absolute;
+}
+.img {
+  width: 100%;
+  height: 100%;
+}
+img {
+  width: 100px;
+  height: 100px;
+}
+</style>

@@ -44,6 +44,16 @@ public class BaseRedisConf {
     public final static String BLOG_LEVEL = "BLOG_LEVEL";
 
     /**
+     * 博客点击
+     */
+    public final static String BLOG_CLICK = "BLOG_CLICK";
+
+    /**
+     * IP地址解析
+     */
+    public final static String IP_SOURCE = "IP_SOURCE";
+
+    /**
      * 最热博客
      */
     public final static String HOT_BLOG = "HOT_BLOG";
@@ -81,7 +91,7 @@ public class BaseRedisConf {
     /**
      * token令牌
      */
-    public final static String USER_TOEKN = "userToken";
+    public final static String USER_TOKEN = "USER_TOKEN";
 
     /**
      * 激活用户的时间
@@ -92,6 +102,11 @@ public class BaseRedisConf {
      * 登录用户的token
      */
     public final static String LOGIN_TOKEN_KEY = "LOGIN_TOKEN_KEY";
+
+    /**
+     * 登录的UUID
+     */
+    public final static String LOGIN_UUID_KEY = "LOGIN_UUID_KEY";
 
     /**
      * 用户提交无效评论的次数
@@ -117,6 +132,60 @@ public class BaseRedisConf {
      * 标签点击
      */
     public final static String TAG_CLICK = "TAG_CLICK";
+
+    /**
+     * 系统参数配置
+     */
+    public final static String SYSTEM_PARAMS = "SYSTEM_PARAMS";
+
+    /**
+     * 网站配置
+     */
+    public final static String WEB_CONFIG = "WEB_CONFIG";
+
+    /**
+     * 首页展示
+     */
+    public final static String DASHBOARD = "DASHBOARD";
+
+    /**
+     * 一周访问量
+     */
+    public final static String WEEK_VISIT = "WEEK_VISIT";
+
+    /**
+     * 博客标签下包含的博客数量
+     */
+    public final static String BLOG_COUNT_BY_TAG = "BLOG_COUNT_BY_TAG";
+
+    /**
+     * 博客分类下包含的博客数量
+     */
+    public final static String BLOG_COUNT_BY_SORT = "BLOG_COUNT_BY_SORT";
+
+    /**
+     * 全年博客贡献数
+     */
+    public final static String BLOG_CONTRIBUTE_COUNT = "BLOG_CONTRIBUTE_COUNT";
+
+    public final static String BLOG_LINK = "BLOG_LINK";
+
+    public final static String BLOG_TAG = "BLOG_TAG";
+
+    /**
+     * 用户收到评论数
+     */
+    public final static String USER_RECEIVE_COMMENT_COUNT = "USER_RECEIVE_COMMENT_COUNT";
+
+    /**
+     * 登录方式
+     */
+    public final static String LOGIN_TYPE = "LOGIN_TYPE";
+    public final static String GITEE = "GITEE";
+    public final static String GITHUB = "GITHUB";
+    public final static String QQ = "QQ";
+    public final static String PASSWORD = "PASSWORD";
+    public final static String WECHAT = "WECHAT";
 
 
 }

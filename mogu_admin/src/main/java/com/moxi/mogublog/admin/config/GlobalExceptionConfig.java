@@ -5,8 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @Author:byteblogs
- * @Date:2018/09/27 12:52
+ * 全局异常处理配置
+ *
+ * @author 陌溪
+ * @date 2020年10月4日10:44:17
  */
 @Configuration
 public class GlobalExceptionConfig {

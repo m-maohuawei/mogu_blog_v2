@@ -4,9 +4,17 @@ import request from '@/utils/request'
  * 获取文件列表
  * @param data
  */
-export function getfilelist(params) {
+export function getFileList(params) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/getfilelist',
+    url: process.env.PICTURE_API + '/networkDisk/getFileList',
+    method: 'post',
+    data: params
+  })
+}
+
+export function getFileTree(params) {
+  return request({
+    url: process.env.PICTURE_API + '/networkDisk/getFileTree',
     method: 'post',
     data: params
   })
@@ -16,9 +24,9 @@ export function getfilelist(params) {
  * 获取存储占用
  * @param data
  */
-export function getstorage(data) {
+export function getStorage(data) {
   return request({
-    url: process.env.PICTURE_API + '/storage/getstorage',
+    url: process.env.PICTURE_API + '/storage/getStorage',
     method: 'get',
     data
   })
@@ -28,9 +36,9 @@ export function getstorage(data) {
  * 解压文件
  * @param data
  */
-export function unzipfile(data) {
+export function unzipFile(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/unzipfile',
+    url: process.env.PICTURE_API + '/networkDisk/unzipFile',
     method: 'post',
     data
   })
@@ -42,7 +50,7 @@ export function unzipfile(data) {
  */
 export function deleteFile(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/deletefile',
+    url: process.env.PICTURE_API + '/networkDisk/deleteFile',
     method: 'post',
     data
   })
@@ -54,31 +62,7 @@ export function deleteFile(data) {
  */
 export function selectFileByFileType(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/selectfilebyfiletype',
-    method: 'post',
-    data
-  })
-}
-
-/**
- * 下载文件
- * @param data
- */
-export function downloadFile(data) {
-  return request({
-    url: process.env.PICTURE_API + '/storage/downloadfile',
-    method: 'post',
-    data
-  })
-}
-
-/**
- * 获取文件的树结构
- * @param data
- */
-export function getFileTree(data) {
-  return request({
-    url: process.env.PICTURE_API + '/networkDisk/getfiletree',
+    url: process.env.PICTURE_API + '/networkDisk/selectFileByFileType',
     method: 'post',
     data
   })
@@ -90,7 +74,7 @@ export function getFileTree(data) {
  */
 export function moveFile(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/movefile',
+    url: process.env.PICTURE_API + '/networkDisk/moveFile',
     method: 'post',
     data
   })
@@ -102,7 +86,19 @@ export function moveFile(data) {
  */
 export function createFile(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/createfile',
+    url: process.env.PICTURE_API + '/networkDisk/createFile',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 编辑文件
+ * @param data
+ */
+export function editFile(data) {
+  return request({
+    url: process.env.PICTURE_API + '/networkDisk/edit',
     method: 'post',
     data
   })
@@ -114,7 +110,7 @@ export function createFile(data) {
  */
 export function batchDeleteFile(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/batchdeletefile',
+    url: process.env.PICTURE_API + '/networkDisk/batchDeleteFile',
     method: 'post',
     data
   })
@@ -126,7 +122,7 @@ export function batchDeleteFile(data) {
  */
 export function batchMoveFile(data) {
   return request({
-    url: process.env.PICTURE_API + '/networkDisk/batchmovefile',
+    url: process.env.PICTURE_API + '/networkDisk/batchMoveFile',
     method: 'post',
     data
   })

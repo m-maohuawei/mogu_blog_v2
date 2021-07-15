@@ -11,12 +11,16 @@
 
       <div class="right-menu">
 
+        <el-tooltip content="门户页面" effect="dark" placement="bottom">
+          <Website id="website" class="right-menu-item" />
+        </el-tooltip>
+
         <el-tooltip content="Gitee源码" effect="dark" placement="bottom">
-          <MoGuGit id="ruoyi-git" class="right-menu-item" />
+          <MoGuGit id="mogu-git" class="right-menu-item" />
         </el-tooltip>
 
         <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <MoGuDoc id="ruoyi-doc" class="right-menu-item" />
+          <MoGuDoc id="mogu-doc" class="right-menu-item" />
         </el-tooltip>
 
         <el-tooltip effect="dark" content="全屏" placement="bottom">
@@ -29,7 +33,7 @@
 
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
-            <img :src="BASE_IMAGE_URL + avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
+            <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
             <i class="el-icon-caret-bottom"/>
           </div>
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -46,24 +50,6 @@
         </el-dropdown>
       </div>
     </el-menu>
-
-    <el-dialog :title="title" :visible.sync="dialogFormVisible">
-      <el-row class="panel-group" style="margin-left:20px;" :gutter="40">
-        <el-collapse v-model="activeName" accordion>
-          <el-collapse-item title="2018.12.20 更新" name="1">
-            <div>增加更新日志</div>
-          </el-collapse-item>
-          <el-collapse-item title="2018.12.19 更新" name="2">
-            <div>修改Gitee中readme页面</div>
-            <div>项目地址：https://gitee.com/moxi159753/mogu_blog_v2</div>
-          </el-collapse-item>
-          <el-collapse-item title="2018.12.18 更新" name="3">
-            <div>重新部署了线上环境</div>
-            <div>线上环境地址：http://www.moguit.cn</div>
-          </el-collapse-item>
-        </el-collapse>
-      </el-row>
-    </el-dialog>
   </div>
 </template>
 
@@ -75,6 +61,7 @@ import Screenfull from "@/components/Screenfull";
 import ThemePicker from "@/components/ThemePicker";
 import MoGuGit from '@/components/MoGu/Git'
 import MoGuDoc from '@/components/MoGu/Doc'
+import Website from '@/components/MoGu/Website'
 
 export default {
   components: {
@@ -83,12 +70,11 @@ export default {
     Hamburger,
     ThemePicker,
     MoGuGit,
-    MoGuDoc
+    MoGuDoc,
+    Website
   },
   data() {
     return {
-      BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
-      dialogFormVisible: false,
       title: "更新日志",
       activeName: "1"
     };
@@ -102,12 +88,13 @@ export default {
     },
     logout() {
       this.$store.dispatch("LogOut").then(() => {
-        location.reload(); // 为了重新实例化vue-router对象 避免bug
+        // 为了重新实例化vue-router对象 避免bug
+        location.reload();
       });
     },
     showLog: function() {
       console.log("点击了显示日志");
-      this.dialogFormVisible = true;
+      window.open("https://gitee.com/moxi159753/mogu_blog_v2/releases", "_blank")
     },
     aboutMe: function () {
       this.$router.push({path:'/system/aboutMe'})

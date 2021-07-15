@@ -76,11 +76,11 @@
     <el-dialog :title="title" :visible.sync="dialogFormVisible">
       <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="角色名称" :label-width="formLabelWidth" prop="roleName">
-          <el-input v-model="form.roleName" auto-complete="off"></el-input>
+          <el-input v-model="form.roleName" placeholder="请输入角色名称" auto-complete="off"></el-input>
         </el-form-item>
 
         <el-form-item label="角色介绍" :label-width="formLabelWidth">
-          <el-input v-model="form.summary" auto-complete="off"></el-input>
+          <el-input v-model="form.summary" placeholder="请输入角色介绍" auto-complete="off"></el-input>
         </el-form-item>
 
         <el-form-item label="访问菜单" :label-width="formLabelWidth">
@@ -142,7 +142,6 @@ export default {
     };
   },
   created() {
-
     this.allMenuList();
     this.roleList();
   },
@@ -158,10 +157,9 @@ export default {
     allMenuList: function () {
       getAllMenu().then(response => {
         console.log(response);
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           let data = response.data;
           this.categoryMenuList = data;
-          console.log("得到的全部菜单", this.categoryMenuList)
         }
       });
     },
@@ -173,12 +171,9 @@ export default {
       params.keyword = this.keyword;
       params.currentPage = this.currentPage;
       params.pageSize = this.pageSize;
-
       getRoleList(params).then(response => {
-        console.log(response);
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           var data = response.data.records;
-
           //初始化菜单UID
           for (let a = 0; a < data.length; a++) {
             if (data[a].categoryMenuUids) {
@@ -192,7 +187,6 @@ export default {
           this.pageSize = response.data.size;
           this.total = response.data.total;
         }
-
       });
     },
     getFormObject: function () {
@@ -226,8 +220,6 @@ export default {
     },
 
     handleDelete: function (row) {
-
-      var that = this;
       this.$confirm("此操作将把分类删除, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -236,27 +228,17 @@ export default {
         .then(() => {
           var params = {};
           params.uid = row.uid;
-
           deleteRole(params).then(response => {
-            if(response.code == "success") {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+            if(response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
-            that.roleList();
+            this.roleList();
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          this.$commonUtil.message.info("已取消删除")
         });
     },
     handleCurrentChange: function (val) {
@@ -264,57 +246,33 @@ export default {
       this.roleList();
     },
     submitForm: function () {
-
       this.$refs.form.validate((valid) => {
         if(!valid) {
           console.log("校验出错")
         } else {
           //得到选中树的UID
-          var categoryMenuUids = this.$refs.tree.getCheckedKeys();
-          console.log("全选UID", categoryMenuUids)
+          this.form.categoryMenuUids = this.$refs.tree.getCheckedKeys();
+          let data = this.$commonUtil.deepClone(this.form)
+          data.categoryMenuUids = JSON.stringify(data.categoryMenuUids);
 
-          // // 得到的半选UID(也就是父级菜单)
-          // var halfCategoryMenuUids = this.$refs.tree.getHalfCheckedKeys();
-          // console.log("半选UID", halfCategoryMenuUids)
-          //
-          // // 合并
-          // categoryMenuUids = categoryMenuUids.concat(halfCategoryMenuUids);
-          // console.log("合并后的", categoryMenuUids)
-
-          this.form.categoryMenuUids = JSON.stringify(categoryMenuUids);
           if (this.isEditForm) {
-            console.log("form", this.form);
-            editRole(this.form).then(response => {
-              console.log(response);
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+            editRole(data).then(response => {
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
                 this.dialogFormVisible = false;
                 this.roleList();
               } else {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
             });
           } else {
-            addRole(this.form).then(response => {
-              console.log(response);
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+            addRole(data).then(response => {
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
                 this.dialogFormVisible = false;
                 this.roleList();
               } else {
-                this.$message({
-                  type: "error",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
             });
           }

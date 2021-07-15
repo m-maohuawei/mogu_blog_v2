@@ -1,7 +1,7 @@
 package com.moxi.mogublog.utils;
 
-import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.lionsoul.ip2region.*;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.lionsoul.ip2region.*;
 
 
 /**
@@ -26,6 +25,25 @@ import org.lionsoul.ip2region.*;
  */
 @Slf4j
 public class IpUtils {
+
+	static String dbPath;
+    static DbConfig config;
+    static DbSearcher searcher;
+
+    static {
+        dbPath = createFtlFileByFtlArray() + "ip2region.db";
+        try {
+            config = new DbConfig();
+        } catch (DbMakerConfigException e) {
+            e.printStackTrace();
+        }
+        try {
+            searcher = new DbSearcher(config, dbPath);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 获取当前网络ip
      *
@@ -115,39 +133,46 @@ public class IpUtils {
         } else {
             os = "UnKnown, More-Info: " + userAgent;
         }
+
         //===============Browser===========================
-        if (user.contains("edge")) {
-            browser = (userAgent.substring(userAgent.indexOf("Edge")).split(" ")[0]).replace("/", "-");
-        } else if (user.contains("msie")) {
-            String substring = userAgent.substring(userAgent.indexOf("MSIE")).split(";")[0];
-            browser = substring.split(" ")[0].replace("MSIE", "IE") + "-" + substring.split(" ")[1];
-        } else if (user.contains("safari") && user.contains("version")) {
-            browser = (userAgent.substring(userAgent.indexOf("Safari")).split(" ")[0]).split("/")[0]
-                    + "-" + (userAgent.substring(userAgent.indexOf("Version")).split(" ")[0]).split("/")[1];
-        } else if (user.contains("opr") || user.contains("opera")) {
-            if (user.contains("opera")) {
-                browser = (userAgent.substring(userAgent.indexOf("Opera")).split(" ")[0]).split("/")[0]
+        try {
+            if (user.contains("edge")) {
+                browser = (userAgent.substring(userAgent.indexOf("Edge")).split(" ")[0]).replace("/", "-");
+            } else if (user.contains("msie")) {
+                String substring = userAgent.substring(userAgent.indexOf("MSIE")).split(";")[0];
+                browser = substring.split(" ")[0].replace("MSIE", "IE") + "-" + substring.split(" ")[1];
+            } else if (user.contains("safari") && user.contains("version")) {
+                browser = (userAgent.substring(userAgent.indexOf("Safari")).split(" ")[0]).split("/")[0]
                         + "-" + (userAgent.substring(userAgent.indexOf("Version")).split(" ")[0]).split("/")[1];
-            } else if (user.contains("opr")) {
-                browser = ((userAgent.substring(userAgent.indexOf("OPR")).split(" ")[0]).replace("/", "-"))
-                        .replace("OPR", "Opera");
+            } else if (user.contains("opr") || user.contains("opera")) {
+                if (user.contains("opera")) {
+                    browser = (userAgent.substring(userAgent.indexOf("Opera")).split(" ")[0]).split("/")[0]
+                            + "-" + (userAgent.substring(userAgent.indexOf("Version")).split(" ")[0]).split("/")[1];
+                } else if (user.contains("opr")) {
+                    browser = ((userAgent.substring(userAgent.indexOf("OPR")).split(" ")[0]).replace("/", "-"))
+                            .replace("OPR", "Opera");
+                }
+            } else if (user.contains("chrome")) {
+                browser = (userAgent.substring(userAgent.indexOf("Chrome")).split(" ")[0]).replace("/", "-");
+            } else if ((user.indexOf("mozilla/7.0") > -1) || (user.indexOf("netscape6") != -1) ||
+                    (user.indexOf("mozilla/4.7") != -1) || (user.indexOf("mozilla/4.78") != -1) ||
+                    (user.indexOf("mozilla/4.08") != -1) || (user.indexOf("mozilla/3") != -1)) {
+                browser = "Netscape-?";
+
+            } else if (user.contains("firefox")) {
+                browser = (userAgent.substring(userAgent.indexOf("Firefox")).split(" ")[0]).replace("/", "-");
+            } else if (user.contains("rv")) {
+                String IEVersion = (userAgent.substring(userAgent.indexOf("rv")).split(" ")[0]).replace("rv:", "-");
+                browser = "IE" + IEVersion.substring(0, IEVersion.length() - 1);
+            } else {
+                browser = "UnKnown";
             }
-
-        } else if (user.contains("chrome")) {
-            browser = (userAgent.substring(userAgent.indexOf("Chrome")).split(" ")[0]).replace("/", "-");
-        } else if ((user.indexOf("mozilla/7.0") > -1) || (user.indexOf("netscape6") != -1) ||
-                (user.indexOf("mozilla/4.7") != -1) || (user.indexOf("mozilla/4.78") != -1) ||
-                (user.indexOf("mozilla/4.08") != -1) || (user.indexOf("mozilla/3") != -1)) {
-            browser = "Netscape-?";
-
-        } else if (user.contains("firefox")) {
-            browser = (userAgent.substring(userAgent.indexOf("Firefox")).split(" ")[0]).replace("/", "-");
-        } else if (user.contains("rv")) {
-            String IEVersion = (userAgent.substring(userAgent.indexOf("rv")).split(" ")[0]).replace("rv:", "-");
-            browser = "IE" + IEVersion.substring(0, IEVersion.length() - 1);
-        } else {
-            browser = "UnKnown, More-Info: " + userAgent;
+        } catch (Exception e) {
+            log.error("获取浏览器版本失败");
+            log.error(e.getMessage());
+            browser = "UnKnown";
         }
+
         Map<String, String> result = new HashMap<>(2);
         result.put("OS", os);
         result.put("BROWSER", browser);
@@ -179,14 +204,15 @@ public class IpUtils {
 
         String ip = content.substring(3);
 
-        if(!Util.isIpAddress(ip)) {
+        if (!Util.isIpAddress(ip)) {
             log.info("IP地址为空");
             return null;
         }
 
         // 淘宝IP宕机，目前使用Ip2region：https://github.com/lionsoul2014/ip2region
-        log.info("返回的IP信息：{}", getCityInfo(ip));
-        return getCityInfo(ip);
+        String cityInfo = getCityInfo(ip);
+        log.info("返回的IP信息：{}", cityInfo);
+        return cityInfo;
 
         // TODO 淘宝接口目前已经宕机，因此暂时注释下面代码
 //        try {
@@ -396,6 +422,7 @@ public class IpUtils {
 
     /**
      * 创建ip2region文件
+     *
      * @return
      */
     public static String createFtlFileByFtlArray() {
@@ -405,6 +432,7 @@ public class IpUtils {
 
     /**
      * 创建文件
+     *
      * @param ftlPath
      * @param ftlName
      * @return
@@ -442,12 +470,15 @@ public class IpUtils {
 
     public static String getCityInfo(String ip) {
 
-        String dbPath = createFtlFileByFtlArray() + "ip2region.db";
-        File file = new File(dbPath);
-        if (file.exists() == false) {
-            System.out.println("Error: Invalid ip2region.db file");
+        if (StringUtils.isEmpty(dbPath)) {
+            log.error("Error: Invalid ip2region.db file");
+            return null;
         }
-
+        if(config == null || searcher == null){
+            log.error("Error: DbSearcher or DbConfig is null");
+            return null;
+        }
+		
         //查询算法
         //B-tree, B树搜索（更快）
         int algorithm = DbSearcher.BTREE_ALGORITHM;
@@ -458,8 +489,9 @@ public class IpUtils {
         //Memory,加载内存（最快）
         //DbSearcher.MEMORY_ALGORITYM
         try {
-            DbConfig config = new DbConfig();
-            DbSearcher searcher = new DbSearcher(config, dbPath);
+            // 使用静态代码块，减少文件读取操作
+//            DbConfig config = new DbConfig();
+//            DbSearcher searcher = new DbSearcher(config, dbPath);
 
             //define the method
             Method method = null;
@@ -473,6 +505,7 @@ public class IpUtils {
                 case DbSearcher.MEMORY_ALGORITYM:
                     method = searcher.getClass().getMethod("memorySearch", String.class);
                     break;
+                default:
             }
 
             DataBlock dataBlock = null;
@@ -497,38 +530,32 @@ public class IpUtils {
 
     /**
      * 获取IP
+     *
      * @return
      */
-    public static String getHostIp()
-    {
-        try
-        {
+    public static String getHostIp() {
+        try {
             return InetAddress.getLocalHost().getHostAddress();
-        }
-        catch (UnknownHostException e)
-        {
+        } catch (UnknownHostException e) {
         }
         return "127.0.0.1";
     }
 
     /**
      * 获取主机名
+     *
      * @return
      */
-    public static String getHostName()
-    {
-        try
-        {
+    public static String getHostName() {
+        try {
             return InetAddress.getLocalHost().getHostName();
-        }
-        catch (UnknownHostException e)
-        {
+        } catch (UnknownHostException e) {
         }
         return "未知";
     }
 
     public static void main(String args[]) {
-        String ip="220.248.12.158";
+        String ip = "220.248.12.158";
         String cityIpString = getCityInfo(ip);
         System.out.println(cityIpString);
     }

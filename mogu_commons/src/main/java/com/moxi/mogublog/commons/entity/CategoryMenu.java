@@ -67,6 +67,11 @@ public class CategoryMenu extends SuperEntity<CategoryMenu> implements Comparabl
     private Integer isShow;
 
     /**
+     * 是否跳转外部URL
+     */
+    private Integer isJumpExternalUrl;
+
+    /**
      * 父菜单
      */
     @TableField(exist = false)

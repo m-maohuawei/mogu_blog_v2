@@ -1,23 +1,23 @@
 package com.moxi.mogublog.commons.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.moxi.mougblog.base.entity.SuperEntity;
 import lombok.Data;
 
+import java.util.List;
+
 /**
- * <p>
  * 友情链接表
- * </p>
  *
- * @author xuzhixiang
- * @since 22018年9月26日09:54:43
+ * @author 陌溪
+ * @since 2018年9月26日09:54:43
  */
 @Data
 @TableName("t_link")
 public class Link extends SuperEntity<Link> {
 
     private static final long serialVersionUID = 1L;
-
 
     /**
      * 友链标题
@@ -58,4 +58,21 @@ public class Link extends SuperEntity<Link> {
      * 申请用户Uid
      */
     private String userUid;
+
+    /**
+     * 站长邮箱
+     */
+    private String email;
+
+    /**
+     * 网站图标uid
+     */
+    private String fileUid;
+
+    /**
+     * 网站图标URL 【该字段不存入数据库】
+     */
+    @TableField(exist = false)
+    private List<String> photoList;
+
 }

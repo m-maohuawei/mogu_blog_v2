@@ -3,7 +3,7 @@
 <mapper namespace="com.moxi.mogublog.picture.mapper.FileSortMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.moxi.mogublog.picture.entity.FileSort">
+    <resultMap id="BaseResultMap" type="com.moxi.mogublog.commons.entity.FileSort">
         <id column="uid" property="uid"/>
         <result column="create_time" property="createTime"/>
         <result column="status" property="status"/>
@@ -15,7 +15,8 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        uid, create_time, status, update_time, project_name, sort_name, url
+        uid
+        , create_time, status, update_time, project_name, sort_name, url
     </sql>
 
 </mapper>

@@ -25,12 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <p>
  * 反馈表 RestApi
- * </p>
  *
  * @author 陌溪
- * @since 2020年3月16日08:38:07
+ * @date 2020年3月16日08:38:07
  */
 @RestController
 @Api(value = "用户反馈相关接口", tags = {"用户反馈相关接口"})
@@ -48,6 +46,7 @@ public class FeedbackRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("获取反馈列表: {}", feedbackVO);
         return ResultUtil.result(SysConf.SUCCESS, feedbackService.getPageList(feedbackVO));
     }
 
@@ -59,6 +58,7 @@ public class FeedbackRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("编辑反馈: {}", feedbackVO);
         return feedbackService.addFeedback(feedbackVO);
     }
 
@@ -70,6 +70,7 @@ public class FeedbackRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("批量删除反馈: {}", feedbackVOList);
         return feedbackService.deleteBatchFeedback(feedbackVOList);
     }
 

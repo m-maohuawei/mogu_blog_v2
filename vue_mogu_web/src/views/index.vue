@@ -7,10 +7,10 @@
 
       <!-- 二级推荐 -->
       <div class="toppic">
-        <li v-for="item in secondData" :key="item.uid" @click="goToInfo(item.uid)">
+        <li v-for="item in secondData" :key="item.uid" @click="goToInfo(item)">
           <a href="javascript:void(0);">
             <i>
-              <img :src="PICTURE_HOST + item.photoList[0]">
+              <img v-if="item.photoList" :src="item.photoList[0]">
             </i>
             <h2>{{item.title}}</h2>
             <span>{{item.blogSort.sortName}}</span>
@@ -29,12 +29,12 @@
         data-scroll-reveal="enter bottom over 1s"
       >
         <h3 class="blogtitle">
-          <a href="javascript:void(0);" @click="goToInfo(item.uid)">{{item.title}}</a>
+          <a href="javascript:void(0);" @click="goToInfo(item)">{{item.title}}</a>
         </h3>
 
         <span class="blogpic">
-          <a href="javascript:void(0);" @click="goToInfo(item.uid)" title>
-            <img v-if="item.photoList" :src="PICTURE_HOST + item.photoList[0]" alt>
+          <a href="javascript:void(0);" @click="goToInfo(item)" title>
+            <img v-if="item.photoList" :src="item.photoList[0]" alt>
           </a>
         </span>
 
@@ -105,7 +105,6 @@
 
       <!-- 友情链接-->
       <Link></Link>
-
     </div>
 
   </article>
@@ -121,7 +120,7 @@
   import Link from "../components/Link";
   import {getBlogByLevel, getNewBlog, recorderVisitPage} from "../api/index";
   import { Loading } from 'element-ui';
-
+  import {getBlogByUid} from "../api/blogContent";
   export default {
     name: "index",
     components: {
@@ -138,7 +137,6 @@
       return {
         loadingInstance: null, // loading对象
         VUE_MOGU_WEB: process.env.VUE_MOGU_WEB,
-        PICTURE_HOST: process.env.PICTURE_HOST,
         firstData: [], //；一级推荐数据
         secondData: [], //；二级级推荐数据
         thirdData: [], //三级推荐
@@ -156,65 +154,43 @@
     },
     mounted() {
       // 注册scroll事件并监听
-      var that = this;
-      that.loading = false;
-      // window.addEventListener("scroll", function() {
-      //   let scrollTop = document.documentElement.scrollTop; //当前的的位置
-      //   let scrollHeight = document.documentElement.scrollHeight; //最高的位置
-      //   console.log(scrollTop);
-      //   if (scrollTop >= 0.6 * scrollHeight && !that.isEnd && !that.loading) {
-      //     that.loading = true;
-      //     that.currentPage = that.currentPage + 1;
-      //     var params = new URLSearchParams();
-      //     params.append("currentPage", that.currentPage);
-      //     params.append("pageSize", that.pageSize);
-      //     getNewBlog(params).then(response => {
-      //       if (response.code == "success" && response.data.records.length > 0) {
-      //         that.isEnd = false;
-      //         var newData = that.newBlogData.concat(response.data.records);
-      //         that.newBlogData = newData;
-      //         that.total = response.data.total;
-      //         that.pageSize = response.data.size;
-      //         that.currentPage = response.data.current;
-      //       } else {
-      //         that.isEnd = true;
-      //       }
-      //       that.loading = false;
-      //     });
-      //   }
-      // });
+      this.loading = false;
     },
     created() {
-
       var secondParams = new URLSearchParams();
       secondParams.append("level", 2);
       // 是否排序
       secondParams.append("useSort", 1);
       getBlogByLevel(secondParams).then(response => {
-        if(response.code == "success") {
+        if(response.code == this.$ECode.SUCCESS) {
           this.secondData = response.data.records;
         }
       });
-
       // 获取最新博客
       this.newBlogList();
-
       var params = new URLSearchParams();
       params.append("pageName", "INDEX");
         recorderVisitPage(params).then(response => {
       });
     },
     methods: {
-      //跳转到文章详情
-      goToInfo(uid) {
-
-        let routeData = this.$router.resolve({
-          path: "/info",
-          query: {blogUid: uid}
-        });
-        window.open(routeData.href, '_blank');
+      //跳转到文章详情【或推广链接】
+      goToInfo(blog) {
+        if(blog.type == "0") {
+          let routeData = this.$router.resolve({
+            path: "/info",
+            query: {blogOid: blog.oid}
+          });
+          window.open(routeData.href, '_blank');
+        } else if(blog.type == "1") {
+          var params = new URLSearchParams();
+          params.append("uid", blog.uid);
+          getBlogByUid(params).then(response => {
+            // 记录一下用户点击日志
+          });
+          window.open(blog.outsideLink, '_blank');
+        }
       },
-
       //跳转到搜索详情页
       goToList(uid) {
         let routeData = this.$router.push({
@@ -245,7 +221,7 @@
         params.append("currentPage", this.currentPage);
         params.append("pageSize", this.pageSize);
         getNewBlog(params).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             that.newBlogData = response.data.records;
             that.total = response.data.total;
             that.pageSize = response.data.size;
@@ -265,7 +241,7 @@
         params.append("currentPage", that.currentPage);
         params.append("pageSize", that.pageSize);
         getNewBlog(params).then(response => {
-          if (response.code == "success" && response.data.records.length > 0) {
+          if (response.code == this.$ECode.SUCCESS && response.data.records.length > 0) {
             that.isEnd = false;
             var newData = that.newBlogData.concat(response.data.records);
             that.newBlogData = newData;

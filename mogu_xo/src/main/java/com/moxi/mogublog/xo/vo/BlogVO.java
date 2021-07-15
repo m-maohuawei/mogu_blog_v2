@@ -25,16 +25,18 @@ public class BlogVO extends BaseVO<BlogVO> {
      */
     @NotBlank(groups = {Insert.class, Update.class})
     private String title;
+
     /**
      * 博客简介
      */
-
     private String summary;
+
     /**
      * 博客内容
      */
     @NotBlank(groups = {Insert.class, Update.class})
     private String content;
+
     /**
      * 标签uid
      */
@@ -82,6 +84,18 @@ public class BlogVO extends BaseVO<BlogVO> {
      */
     @IntegerNotNull(groups = {Insert.class, Update.class})
     private Integer level;
+
+    /**
+     * 类型【0 博客， 1：推广】
+     */
+    @NotBlank(groups = {Insert.class, Update.class})
+    private String type;
+
+    /**
+     * 外链【如果是推广，那么将跳转到外链】
+     */
+    private String outsideLink;
+
     /**
      * 标签,一篇博客对应多个标签
      */
@@ -123,7 +137,17 @@ public class BlogVO extends BaseVO<BlogVO> {
     /**
      * 是否开启评论(0:否， 1:是)
      */
-    private String startComment;
+    private String openComment;
+
+    /**
+     * OrderBy排序字段（desc: 降序）
+     */
+    private String orderByDescColumn;
+
+    /**
+     * OrderBy排序字段（asc: 升序）
+     */
+    private String orderByAscColumn;
 
     /**
      * 无参构造方法，初始化默认值

@@ -1,9 +1,9 @@
 package com.moxi.mogublog.utils;
 /**
- * 对时间的操作的工具类
+ * 时间操作工具类
  *
- * @author xzx19950624@qq.com
- * 2018年5月8日  上午9:20:33
+ * @author 陌溪
+ * 2018年5月8日 上午9:20:33
  */
 
 import org.slf4j.Logger;
@@ -46,8 +46,6 @@ public class DateUtils {
      * 获取现在的时间 yyyy-MM-dd HH:mm:ss
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年5月8日  上午9:28:12
      */
     public static String getNowTime() {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -60,14 +58,13 @@ public class DateUtils {
      *
      * @return Date() 当前日期
      */
-    public static Date getNowDate()
-    {
+    public static Date getNowDate() {
         return new Date();
     }
 
     /**
      * @return
-     * @author xzx19950624@qq.com
+     * @author 陌溪
      * @date 2018年6月14日
      */
     public static String getNowTimeFormat() {
@@ -92,8 +89,6 @@ public class DateUtils {
      * 获取今天开始的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年5月8日  上午9:40:53
      */
     public static String getToDayStartTime() {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
@@ -105,8 +100,6 @@ public class DateUtils {
      * 获取今天结束的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年6月12日
      */
     public static String getToDayEndTime() {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 23:59:59");
@@ -118,8 +111,6 @@ public class DateUtils {
      * 获取昨天开始的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年6月11日
      */
     public static String getYestodayStartTime() {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
@@ -131,8 +122,6 @@ public class DateUtils {
      * 获取昨天结束的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月11日
      */
     public static String getYestodayEndTime() {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 23:59:59");
@@ -144,8 +133,6 @@ public class DateUtils {
      * 获取某天开始的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2019年6月20日09:39:25
      */
     public static String getOneDayStartTime(String oneDay) {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
@@ -153,6 +140,12 @@ public class DateUtils {
         return formate.format(date);
     }
 
+    /**
+     * 获取某天开始的日期
+     *
+     * @param oneDay
+     * @return
+     */
     public static String getOneDayStartTime(Date oneDay) {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
         return formate.format(oneDay);
@@ -162,8 +155,6 @@ public class DateUtils {
      * 获取某天结束的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2019年6月20日09:42:16
      */
     public static String getOneDayEndTime(String oneDay) {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
@@ -171,6 +162,12 @@ public class DateUtils {
         return formate.format(date);
     }
 
+    /**
+     * 获取某天结束的日期
+     *
+     * @param oneDay
+     * @return
+     */
     public static String getOneDayEndTime(Date oneDay) {
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
         return formate.format(oneDay);
@@ -181,8 +178,6 @@ public class DateUtils {
      * 获取本周开始的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static Date getWeekStartTime() {
         // 获得本周一0点时间
@@ -197,8 +192,6 @@ public class DateUtils {
      *
      * @param dateTime
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月19日
      */
     public static Date strToDateTime(String dateTime) {
         Date date = null;
@@ -206,7 +199,6 @@ public class DateUtils {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             date = format.parse(dateTime);
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return date;
@@ -216,8 +208,6 @@ public class DateUtils {
      * 将  date 转换成  时间戳
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月26日
      */
     public static Long dateToStamp(String s) throws ParseException {
 
@@ -232,8 +222,6 @@ public class DateUtils {
      *
      * @param dateTime
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月19日
      */
     public static String dateTimeToStr(Date dateTime) {
 
@@ -245,8 +233,6 @@ public class DateUtils {
      * 获取本周开始的时间的字符串
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static String getWeekStartTimeStr() {
         // 获得本周一0点时间
@@ -261,8 +247,6 @@ public class DateUtils {
      * 获取本周结束的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static Date getWeekEndTime() {
         Calendar cal = Calendar.getInstance();
@@ -275,8 +259,6 @@ public class DateUtils {
      * 获取本周结束的时间的字符串
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static String getWeekEndTimeStr() {
         Calendar cal = Calendar.getInstance();
@@ -290,8 +272,6 @@ public class DateUtils {
      * 获取上周开始的时间的字符串
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static String getLastWeekStartTimeStr() {
         int weeks = -1;
@@ -307,8 +287,6 @@ public class DateUtils {
      * 获取本月开始的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static Date getMonthStartTime() {
         Calendar cal = Calendar.getInstance();
@@ -321,8 +299,6 @@ public class DateUtils {
      * 获取本月开始的时间的字符串
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static String getMonthStartTimeStr() {
         Calendar cal = Calendar.getInstance();
@@ -336,8 +312,6 @@ public class DateUtils {
      * 获取本月结束的时间
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static Date getMonthEndTime() {
         Calendar cal = Calendar.getInstance();
@@ -351,8 +325,6 @@ public class DateUtils {
      * 获取本月结束的时间的字符串
      *
      * @return
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static String getMonthEndTimeStr() {
         Calendar cal = Calendar.getInstance();
@@ -376,13 +348,17 @@ public class DateUtils {
 
     /**
      * 得到二个日期间的间隔天数
+     *
+     * @param date1
+     * @param date2
+     * @return
      */
-    public static int getDayByTwoDay(String sj1, String sj2) {
+    public static int getDayByTwoDay(String date1, String date2) {
         SimpleDateFormat myFormatter = new SimpleDateFormat("yyyy-MM-dd");
         Long day = 0L;
         try {
-            java.util.Date date = myFormatter.parse(sj1);
-            java.util.Date mydate = myFormatter.parse(sj2);
+            java.util.Date date = myFormatter.parse(date1);
+            java.util.Date mydate = myFormatter.parse(date2);
             day = (date.getTime() - mydate.getTime()) / (24 * 60 * 60 * 1000);
         } catch (Exception e) {
             return 0;
@@ -392,6 +368,7 @@ public class DateUtils {
 
     /**
      * 得到两个日期相差的秒数
+     *
      * @param lastDate
      * @param date
      * @return
@@ -412,8 +389,6 @@ public class DateUtils {
      * @param dateTime
      * @return
      * @throws ParseException
-     * @author xzx19950624@qq.com
-     * @date 2018年6月13日
      */
     public static int getDaysByWeek(String dateTime) throws ParseException {
         Calendar cal = Calendar.getInstance();
@@ -434,8 +409,6 @@ public class DateUtils {
      * @param dateTime
      * @return
      * @throws ParseException
-     * @author xzx19950624@qq.com
-     * @date 2018年6月14日
      */
     public static int getDaysByMonth(String dateTime) throws ParseException {
         Calendar cal = Calendar.getInstance();
@@ -465,8 +438,6 @@ public class DateUtils {
      * 获取当前的年
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年5月8日  上午9:36:12
      */
     public static Integer getYears() {
         Calendar calendar = new GregorianCalendar(TimeZone
@@ -479,8 +450,6 @@ public class DateUtils {
      * 获取当前的月
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年5月8日  上午9:37:37
      */
     public static Integer getMonth() {
         Calendar calendar = new GregorianCalendar(TimeZone
@@ -493,8 +462,6 @@ public class DateUtils {
      * 获取当前天
      *
      * @return
-     * @author xzx19950624@qq.com
-     * 2018年5月8日  上午10:31:37
      */
     public static Integer getDay() {
         Calendar calendar = new GregorianCalendar(TimeZone
@@ -518,11 +485,16 @@ public class DateUtils {
         return format;
     }
 
-    // 获得当前日期与本周日相差的天数    
+    /**
+     * 获得当前日期与本周日相差的天数
+     *
+     * @return
+     */
     private static int getMondayPlus() {
         Calendar cd = Calendar.getInstance();
-        // 获得今天是一周的第几天，星期日是第一天，星期二是第二天......    
-        int dayOfWeek = cd.get(Calendar.DAY_OF_WEEK) - 1; // 因为按中国礼拜一作为第一天所以这里减1    
+        // 获得今天是一周的第几天，星期日是第一天，星期二是第二天......
+        // 因为按中国礼拜一作为第一天所以这里减1
+        int dayOfWeek = cd.get(Calendar.DAY_OF_WEEK) - 1;
         if (dayOfWeek == 1) {
             return 0;
         } else {
@@ -531,16 +503,14 @@ public class DateUtils {
     }
 
     /**
-     * 获取几天之后的日期（wq）
+     * 获取几天之后的日期
      *
      * @param date yyyy-MM-dd HH:mm:ss
      * @param day  加减的天数
      * @return
      */
     public static Date getDate(String date, int day) {
-
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
         Calendar cal = Calendar.getInstance();
         try {
             Date beforeDate = formate.parse(date);
@@ -550,11 +520,28 @@ public class DateUtils {
             Date newDate = cal.getTime();
             return newDate;
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
         return null;
+    }
+
+    /**
+     * 获取某个日期 在加上 秒数的时间
+     *
+     * @param beforeDate yyyy-MM-dd HH:mm:ss
+     * @param timeSecond 加减的秒数
+     * @return
+     */
+    public static String getDateStr(Date beforeDate, Long timeSecond) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            // 返回毫秒数 + 添加的毫秒数
+            Long time = beforeDate.getTime() + timeSecond * 1000;
+            return format.format(time);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return "";
     }
 
     /**
@@ -631,8 +618,7 @@ public class DateUtils {
     /**
      * 获取服务器启动时间
      */
-    public static Date getServerStartDate()
-    {
+    public static Date getServerStartDate() {
         long time = ManagementFactory.getRuntimeMXBean().getStartTime();
         return new Date(time);
     }
@@ -640,8 +626,7 @@ public class DateUtils {
     /**
      * 计算两个时间差
      */
-    public static String getDatePoor(Date endDate, Date nowDate)
-    {
+    public static String getDatePoor(Date endDate, Date nowDate) {
         long nd = 1000 * 24 * 60 * 60;
         long nh = 1000 * 60 * 60;
         long nm = 1000 * 60;
@@ -658,5 +643,4 @@ public class DateUtils {
         // long sec = diff % nd % nh % nm / ns;
         return day + "天" + hour + "小时" + min + "分钟";
     }
-
 }

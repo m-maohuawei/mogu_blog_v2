@@ -3,8 +3,8 @@
     <div v-for="item in comments" :key="item.uid">
       <div class="commentList">
         <span class="left p1">
-          <img v-if="item.user" :src="item.user.photoUrl ? PICTURE_HOST + item.user.photoUrl:'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'" onerror="onerror=null;src='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'" />
-          <img v-else src="https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif" />
+          <img v-if="item.user" :src="item.user.photoUrl ? item.user.photoUrl:defaultAvatar" onerror="onerror=null;src=defaultAvatar" />
+          <img v-else :src="defaultAvatar" />
         </span>
 
         <span class="right p1">
@@ -16,12 +16,11 @@
           </div>
 
           <div class="rightCenter" v-html="$xss(item.content, options)"></div>
-<!--          <div class="rightCenter" v-html="item.content"></div>-->
 
           <div class="rightBottom">
             <el-link class="b1" :underline="false" @click="replyTo(item)">回复</el-link>
             <el-link class="b1" :underline="false" @click="report(item)">举报</el-link>
-            <el-link class="b1" :underline="false" @click="delComment(item)">删除</el-link>
+            <el-link class="b1" v-if="$store.state.user.isLogin && $store.state.user.userInfo.uid == item.userUid" :underline="false" @click="delComment(item)">删除</el-link>
           </div>
 
           <div class="rightCommentList">
@@ -41,7 +40,7 @@
 
   import {mapMutations} from 'vuex';
   import CommentBox from "../CommentBox";
-  import {dateFormat, timeAgo, formatData} from "../../utils/webUtils"
+  import {timeAgo} from "../../utils/webUtils"
   import {addComment, deleteComment, getCommentList, reportComment} from "../../api/comment";
   import {getListByDictTypeList} from "@/api/sysDictData"
   export default {
@@ -56,7 +55,6 @@
             span: ['class']
           }
         },
-        PICTURE_HOST: process.env.PICTURE_HOST,
         taggleStatue: true,
         submitting: false,
         value: '',
@@ -66,6 +64,7 @@
         },
         userInfo: {},
         userTagDictList: [], // 用户标签字典
+        defaultAvatar: this.$SysConf.defaultAvatar
       };
     },
     created() {
@@ -90,7 +89,7 @@
         }
         var dictTypeList =  ['sys_user_tag']
         getListByDictTypeList(dictTypeList).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             var dictMap = response.data;
             this.userTagDictList = dictMap.sys_user_tag.list
             this.setUserTag(dictMap.sys_user_tag.list)
@@ -126,7 +125,7 @@
         params.toUserUid = e.toUserUid;
         params.source = e.source
         addComment(params).then(response => {
-            if (response.code == "success") {
+            if (response.code == this.$ECode.SUCCESS) {
               let commentData = response.data
               document.getElementById(commentData.toUid).style.display = 'none'
               let comments = this.$store.state.app.commentList;
@@ -161,7 +160,7 @@
         params.currentPage = 0;
         params.pageSize = 10;
         getCommentList(params).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             this.comments = response.data;
           }
         });
@@ -194,6 +193,7 @@
           });
           return
         }
+
         let userUid = this.$store.state.user.userInfo.uid
 
         if(userUid == item.userUid) {
@@ -209,7 +209,7 @@
         params.uid = item.uid;
         params.userUid = userUid
         reportComment(params).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             this.$notify({
               title: '成功',
               message: response.data,
@@ -235,33 +235,47 @@
           });
           return
         }
-        var that = this;
-        let params = {};
-        params.uid = item.uid;
-        params.userUid = this.$store.state.user.userInfo.uid
 
-        deleteComment(params).then(response => {
-          if (response.code == "success") {
-            this.$notify({
-              title: '成功',
-              message: "删除成功",
-              type: 'success',
-              offset: 100
+        this.$confirm("此操作将把本评论和子评论删除, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            let params = {};
+            params.uid = item.uid;
+            params.userUid = this.$store.state.user.userInfo.uid
+            deleteComment(params).then(response => {
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$notify({
+                  title: '成功',
+                  message: "删除成功",
+                  type: 'success',
+                  offset: 100
+                });
+
+              } else {
+                this.$notify.error({
+                  title: '错误',
+                  message: "删除失败",
+                  offset: 100
+                });
+              }
+              let comments = this.$store.state.app.commentList;
+              this.deleteCommentList(comments, params.uid, null)
+              this.$store.commit("setCommentList", comments);
+              this.$emit("deleteComment", "")
             });
 
-          } else {
-            this.$notify.error({
-              title: '错误',
-              message: "删除失败",
-              type: 'success',
-              offset: 100
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消删除"
             });
-          }
-          let comments = this.$store.state.app.commentList;
-          this.deleteCommentList(comments, params.uid, null)
-          this.$store.commit("setCommentList", comments);
-          this.$emit("deleteComment", "")
-        });
+          });
+
+
       },
       // 校验是否登录
       validLogin() {
@@ -358,7 +372,7 @@
   }
   .commentList .rightCenter {
     margin-left: 20px;
-    height: 50px;
+    min-height: 50px;
     margin-top: 15px;
   }
   .commentList .rightBottom {
@@ -370,5 +384,18 @@
   }
   .commentList .rightBottom .b1 {
     margin-left: 10px;
+  }
+
+  @media only screen and (min-width: 300px) and (max-width: 767px) {
+    .commentList .left {
+      display: inline-block;
+      width: 30px;
+      height: 100%;
+    }
+    .commentList .right {
+      display: inline-block;
+      width: calc(100% - 35px);
+      margin-left: 5px;
+    }
   }
 </style>

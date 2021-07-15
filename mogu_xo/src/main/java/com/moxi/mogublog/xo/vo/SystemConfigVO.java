@@ -6,11 +6,9 @@ import com.moxi.mougblog.base.vo.BaseVO;
 import lombok.Data;
 
 /**
- * <p>
  * 网站配置VO
- * </p>
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @since 2018年11月11日14:54:12
  */
 @Data
@@ -47,9 +45,14 @@ public class SystemConfigVO extends BaseVO<SystemConfigVO> {
     private String uploadLocal;
 
     /**
-     * 图片显示优先级（ 1 展示 七牛云,  0 本地）
+     * 标题图片显示优先级（ 1 展示 七牛云,  0 本地）
      */
     private String picturePriority;
+
+    /**
+     * 封面图片显示优先级（ 1 展示 七牛云,  0 本地）
+     */
+    private String contentPicturePriority;
 
     /**
      * 本地存储图片服务器，域名前缀：   http://localhost:8600
@@ -94,4 +97,58 @@ public class SystemConfigVO extends BaseVO<SystemConfigVO> {
      */
     private String startEmailNotification;
 
+    /**
+     * 编辑器模式，(0：富文本编辑器CKEditor，1：markdown编辑器Veditor)
+     */
+    private String editorModel;
+
+    /**
+     * 主题颜色
+     */
+    private String themeColor;
+
+    /**
+     * 文件是否上传Minio (0:否， 1：是)
+     */
+    private String uploadMinio;
+
+    /**
+     * Minio远程连接地址
+     */
+    private String minioEndPoint;
+
+    /**
+     * Minio公钥
+     */
+    private String minioAccessKey;
+
+    /**
+     * Minio私钥
+     */
+    private String minioSecretKey;
+
+    /**
+     * Minio桶
+     */
+    private String minioBucket;
+
+    /**
+     * Minio服务器文件域名前缀： http://minio.moguit.cn
+     */
+    private String minioPictureBaseUrl;
+
+    /**
+     * 仪表盘通知【首次进入时弹出】
+     */
+    private String dashboardNotification;
+
+    /**
+     * 是否开启仪表盘通知【0 关闭，1 开启】
+     */
+    private String openDashboardNotification;
+
+    /**
+     * 是否开启用户邮件激活功能【0 关闭，1 开启】
+     */
+    private String openEmailActivate;
 }

@@ -5,7 +5,7 @@ import com.moxi.mougblog.base.global.BaseSysConf;
 /**
  * 系统常量
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2018年10月20日15:13:20
  */
 public final class SysConf extends BaseSysConf {
@@ -17,7 +17,6 @@ public final class SysConf extends BaseSysConf {
     public final static String AVATAR = "avatar";
     public final static String PASS_WORD = "passWord";
 
-    //统计
     public final static String BLOG_COUNT = "blogCount";
     public final static String USER_COUNT = "userCount";
     public final static String COMMENT_COUNT = "commentCount";

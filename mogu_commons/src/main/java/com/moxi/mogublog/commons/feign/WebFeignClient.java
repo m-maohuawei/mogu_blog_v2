@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * mogu_admin相关接口
+ * 后端服务feign远程调用
  *
  * @author 陌溪
  * @date 2020年1月21日22:19:10
@@ -33,8 +33,15 @@ public interface WebFeignClient {
     @RequestMapping("/content/getSameBlogByBlogUid")
     public String getSameBlogByBlogUid(@RequestParam(name = "blogUid", required = true) String blogUid, Long currentPage, @RequestParam(name = "pageSize", required = false, defaultValue = "10") Long pageSize);
 
-    @RequestMapping(value = "/index/getNewBlog")
-    public String getNewBlog(@RequestParam(name = "currentPage", required = false, defaultValue = "1") Long currentPage,
-                             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Long pageSize);
+    /**
+     * 获取博客列表[包含内容]
+     *
+     * @param currentPage
+     * @param pageSize
+     * @return
+     */
+    @RequestMapping(value = "/index/getBlogBySearch")
+    public String getBlogBySearch(@RequestParam(name = "currentPage", required = false, defaultValue = "1") Long currentPage,
+                                  @RequestParam(name = "pageSize", required = false, defaultValue = "10") Long pageSize);
 
 }

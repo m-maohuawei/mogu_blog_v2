@@ -16,7 +16,7 @@
         <p>感谢您的支持，我会继续努力的!</p>
       </div>
       <div class="shang_payimg">
-        <img :src="PICTURE_HOST + payCode" alt="扫码支持" title="扫一扫">
+        <img :src="payCode" alt="扫码支持" title="扫一扫">
       </div>
       <div class="pay_explain">扫码打赏，你说多少就多少</div>
       <div class="shang_payselect">
@@ -53,6 +53,7 @@ import {
   praiseBlogByUid,
   getBlogPraiseCountByUid
 } from "../../api/blogContent";
+import {mapMutations} from "vuex";
 export default {
   name: "PayCode",
   props: {
@@ -66,7 +67,6 @@ export default {
   },
   data() {
     return {
-      PICTURE_HOST: process.env.PICTURE_HOST,
       webConfigData: [],
       showPay: false, //是否显示支付
       payMethod: 1, // 1: 支付宝  2：微信
@@ -75,13 +75,16 @@ export default {
   },
   created() {
     getWebConfig().then(response => {
-      if (response.code == "success") {
+      console.log("从接口中获取")
+      if (response.code == this.$ECode.SUCCESS) {
         this.webConfigData = response.data;
         this.payCode = this.webConfigData.aliPayPhoto;
       }
     });
   },
   methods: {
+    //拿到vuex中的写的方法
+    ...mapMutations(['setLoginMessage']),
     dashangToggle: function() {
       this.showPay = !this.showPay;
     },
@@ -96,25 +99,34 @@ export default {
     },
     //博客点赞
     praiseBlog: function(uid) {
+      // 判断用户是否登录
+      let isLogin = this.$store.state.user.isLogin
+      if(!isLogin) {
+        this.$notify.error({
+          title: '警告',
+          message: '登录后才可以评论哦~',
+          offset: 100
+        });
+        // 未登录，自动弹出登录框
+        this.setLoginMessage(Math.random())
+        return;
+      }
+
       var params = new URLSearchParams();
       params.append("uid", uid);
       praiseBlogByUid(params).then(response => {
-        console.log(response);
-        if (response.code == "success") {
-
+        if (response.code == this.$ECode.SUCCESS) {
           this.$notify({
             title: '成功',
             message: "点赞成功",
             type: 'success',
             offset: 100
           });
-
-          this.praiseCount = response.data;
-
+          this.$emit('update:praiseCount',response.data);
         } else {
           this.$notify.error({
             title: '错误',
-            message: response.data,
+            message: response.message,
             offset: 100
           });
         }
@@ -125,7 +137,7 @@ export default {
       var params = new URLSearchParams();
       params.append("uid", uid);
       getBlogPraiseCountByUid(params).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           this.praiseCount = response.data;
         }
       });

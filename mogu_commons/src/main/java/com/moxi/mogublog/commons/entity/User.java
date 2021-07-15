@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.moxi.mougblog.base.entity.SuperEntity;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
@@ -19,6 +20,7 @@ import java.util.Date;
  * @since 2018-09-04
  */
 @Data
+@ToString
 @TableName("t_user")
 public class User extends SuperEntity<User> {
 
@@ -65,26 +67,31 @@ public class User extends SuperEntity<User> {
     /**
      * 手机
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String mobile;
 
     /**
      * QQ号
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String qqNumber;
 
     /**
      * 微信号
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String weChat;
 
     /**
      * 职业
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String occupation;
 
     /**
      * 自我简介最多150字
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String summary;
 
     /**

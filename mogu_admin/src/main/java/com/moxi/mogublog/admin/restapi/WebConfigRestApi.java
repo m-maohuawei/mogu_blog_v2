@@ -3,7 +3,6 @@ package com.moxi.mogublog.admin.restapi;
 
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.WebConfigService;
 import com.moxi.mogublog.xo.vo.WebConfigVO;
@@ -17,12 +16,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * <p>
  * 网站配置表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2018年11月11日15:19:28
+ * @author 陌溪
+ * @date 2018年11月11日15:19:28
  */
 @Api(value = "网站配置相关接口", tags = {"网站配置相关接口"})
 @RestController
@@ -37,7 +34,7 @@ public class WebConfigRestApi {
     @ApiOperation(value = "获取网站配置", notes = "获取网站配置")
     @GetMapping("/getWebConfig")
     public String getWebConfig() {
-        return ResultUtil.result(SysConf.SUCCESS, webConfigService.getWebConfig());
+        return ResultUtil.successWithData(webConfigService.getWebConfig());
     }
 
     @AuthorityVerify

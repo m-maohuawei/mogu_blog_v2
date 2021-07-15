@@ -10,24 +10,55 @@
 const version = require('element-ui/package.json').version // element-ui version from node_modules
 const ORIGINAL_THEME = '#409EFF' // default color
 
+import {getSystemConfig, editSystemConfig} from "@/api/systemConfig";
 export default {
   data() {
     return {
       chalk: '', // content of theme-chalk css
-      theme: ORIGINAL_THEME
+      theme: ORIGINAL_THEME,
+      systemConfig: {},
+      isEdit: false
     }
   },
   watch: {
     theme(val, oldVal) {
+      if(this.isEdit) {
+        this.systemConfig.themeColor = val
+        editSystemConfig(this.systemConfig).then(res => {
+          if (res.code = this.$ECode.SUCCESS) {
+            this.updateColorStyle(val, oldVal)
+          }
+        });
+      }
+    }
+  },
+  created() {
+    this.getSystemConfigData()
+  },
+  methods: {
+    getSystemConfigData: function() {
+      var that = this
+      getSystemConfig().then(response => {
+        if (response.code == this.$ECode.SUCCESS) {
+          this.systemConfig = response.data;
+          let themeColor = this.systemConfig.themeColor ? this.systemConfig.themeColor:ORIGINAL_THEME
+          this.theme = themeColor
+          this.updateColorStyle(themeColor, ORIGINAL_THEME)
+          // 调整状态位，避免初始化请求后台
+          setTimeout(()=>{
+            that.isEdit = true
+          }, 10)
+        }
+      });
+    },
+    updateColorStyle(val, oldVal) {
       if (typeof val !== 'string') return
       const themeCluster = this.getThemeCluster(val.replace('#', ''))
       const originalCluster = this.getThemeCluster(oldVal.replace('#', ''))
-      console.log(themeCluster, originalCluster)
       const getHandler = (variable, id) => {
         return () => {
           const originalCluster = this.getThemeCluster(ORIGINAL_THEME.replace('#', ''))
           const newStyle = this.updateStyle(this[variable], originalCluster, themeCluster)
-
           let styleTag = document.getElementById(id)
           if (!styleTag) {
             styleTag = document.createElement('style')
@@ -57,14 +88,8 @@ export default {
         if (typeof innerText !== 'string') return
         style.innerText = this.updateStyle(innerText, originalCluster, themeCluster)
       })
-      this.$message({
-        message: '换肤成功',
-        type: 'success'
-      })
-    }
-  },
 
-  methods: {
+    },
     updateStyle(style, oldCluster, newCluster) {
       let newStyle = style
       oldCluster.forEach((color, index) => {
@@ -72,7 +97,6 @@ export default {
       })
       return newStyle
     },
-
     getCSSString(url, callback, variable) {
       const xhr = new XMLHttpRequest()
       xhr.onreadystatechange = () => {
@@ -91,7 +115,8 @@ export default {
         let green = parseInt(color.slice(2, 4), 16)
         let blue = parseInt(color.slice(4, 6), 16)
 
-        if (tint === 0) { // when primary color is in its rgb space
+        // when primary color is in its rgb space
+        if (tint === 0) {
           return [red, green, blue].join(',')
         } else {
           red += Math.round(tint * (255 - red))

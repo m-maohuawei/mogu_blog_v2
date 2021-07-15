@@ -4,7 +4,6 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.LinkService;
 import com.moxi.mogublog.xo.vo.LinkVO;
@@ -25,12 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p>
  * 友链表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 @RestController
 @Api(value = "友情链接相关接口", tags = {"友情链接相关接口"})
@@ -49,7 +46,7 @@ public class LinkRestApi {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         log.info("获取友链列表");
-        return ResultUtil.result(SysConf.SUCCESS, linkService.getPageList(linkVO));
+        return ResultUtil.successWithData(linkService.getPageList(linkVO));
     }
 
     @AvoidRepeatableCommit

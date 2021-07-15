@@ -14,10 +14,14 @@ public final class SysConf extends BaseSysConf {
     public final static String HTTP = "http";
     public final static String TITLE = "title";
     public final static String NAME = "name";
+    public final static String COUNT = "count";
+    public final static String VALUE = "value";
     public final static String CONTENT = "content";
     public final static String AVATAR = "avatar";
     public final static String PASS_WORD = "passWord";
     public final static String RECORDS = "records";
+    public final static String CONTRIBUTE_DATE = "contributeDate";
+    public final static String BLOG_CONTRIBUTE_COUNT = "blogContributeCount";
 
     //统计
     public final static String BLOG_COUNT = "blogCount";
@@ -58,6 +62,8 @@ public final class SysConf extends BaseSysConf {
      */
     public static final String GITHUB = "github";
     public static final String GITEE = "gitee";
+    public static final String QQ_NUMBER = "qqNumber";
+
     public static final String PIC_URL = "picUrl";
     public static final String QI_NIU_URL = "qiNiuUrl";
     public static final String NICKNAME = "nickname";
@@ -70,5 +76,6 @@ public final class SysConf extends BaseSysConf {
     public static final String COMMENT_LIST = "commentList";
     public static final String REPLY_LIST = "replyList";
     public static final String RECEIVER = "receiver";
+    public static final String SUBJECT = "subject";
 
 }

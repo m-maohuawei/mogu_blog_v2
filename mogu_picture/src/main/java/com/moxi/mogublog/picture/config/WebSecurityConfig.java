@@ -7,6 +7,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 
+/**
+ * SpringSecurity配置文件
+ */
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -32,14 +35,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 允许对于网站静态资源的无授权访问
                 .antMatchers(
-                        "/v2/api-docs",
-                        "/configuration/ui",
-                        "/swagger-resources",
-                        "/configuration/security",
                         "/swagger-ui.html",
-                        "/webjars/**",
+                        "/swagger-ui/*",
                         "/swagger-resources/**",
-                        "/swagge‌​r-ui.html",
+                        "/v2/api-docs",
+                        "/v3/api-docs",
+                        "/webjars/**",
                         "/actuator/**",
                         "/druid/**"
                 ).permitAll()

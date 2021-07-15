@@ -1,7 +1,7 @@
 package com.moxi.mogublog.web.restapi;
 
 
-import com.moxi.mogublog.web.log.BussinessLog;
+import com.moxi.mogublog.web.annotion.log.BussinessLog;
 import com.moxi.mogublog.xo.service.BlogService;
 import com.moxi.mougblog.base.enums.EBehavior;
 import io.swagger.annotations.Api;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 归档 RestApi
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2019年10月24日15:29:35
  */
 @RestController
@@ -31,11 +31,7 @@ public class SortRestApi {
 
     /**
      * 获取归档的信息
-     *
-     * @author xzx19950624@qq.com
-     * @date 2018年11月6日下午8:57:48
      */
-
     @ApiOperation(value = "归档", notes = "归档")
     @GetMapping("/getSortList")
     public String getSortList() {

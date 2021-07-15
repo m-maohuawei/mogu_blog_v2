@@ -1,10 +1,13 @@
 package com.moxi.mougblog.base.exception;
 
 import com.moxi.mogublog.utils.StringUtils;
-import com.moxi.mougblog.base.global.ErrorConstants;
+import com.moxi.mougblog.base.exception.exceptionType.BusinessException;
+import com.moxi.mougblog.base.global.ErrorCode;
 import com.moxi.mougblog.base.vo.Result;
 
 /**
+ * 异常工具类
+ *
  * @Author: 陌溪
  * @Date: 2019年12月4日22:47:08
  */
@@ -56,6 +59,6 @@ public class ExceptionUtil {
      * @param message
      */
     public static Result setResult(String message) {
-        return Result.createWithErrorMessage(StringUtils.isBlank(message) ? "系统异常，请稍候..." : message, ErrorConstants.OPERATION_FAIL);
+        return Result.createWithErrorMessage(StringUtils.isBlank(message) ? "系统异常，请稍候..." : message, ErrorCode.OPERATION_FAIL);
     }
 }

@@ -2,7 +2,9 @@ package com.moxi.mogublog.web.config;
 
 import com.moxi.mogublog.utils.JsonUtils;
 import com.moxi.mogublog.utils.StringUtils;
+import com.moxi.mogublog.web.global.RedisConf;
 import com.moxi.mogublog.web.global.SysConf;
+import com.moxi.mougblog.base.global.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,17 +36,15 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         String accessToken = request.getHeader("Authorization");
 
         if (accessToken != null) {
-
-            log.error("传递过来的token为:" + accessToken);
-
             //从Redis中获取内容
-            String userInfo = stringRedisTemplate.opsForValue().get(SysConf.USER_TOEKN + SysConf.REDIS_SEGMENTATION + accessToken);
+            String userInfo = stringRedisTemplate.opsForValue().get(RedisConf.USER_TOKEN + Constants.SYMBOL_COLON + accessToken);
             if (!StringUtils.isEmpty(userInfo)) {
                 Map<String, Object> map = JsonUtils.jsonToMap(userInfo);
                 //把userUid存储到 request中
                 request.setAttribute(SysConf.TOKEN, accessToken);
-                request.setAttribute(SysConf.USER_UID, map.get("uid"));
-                request.setAttribute(SysConf.USER_NAME, map.get("nickName"));
+                request.setAttribute(SysConf.USER_UID, map.get(SysConf.UID));
+                request.setAttribute(SysConf.USER_NAME, map.get(SysConf.NICK_NAME));
+                log.info("解析出来的用户:{}", map.get(SysConf.NICK_NAME));
             }
         }
         chain.doFilter(request, response);

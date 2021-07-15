@@ -3,8 +3,10 @@ package com.moxi.mogublog.xo.vo;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.moxi.mougblog.base.validator.annotion.NotBlank;
+import com.moxi.mougblog.base.validator.annotion.Range;
 import com.moxi.mougblog.base.validator.group.GetOne;
 import com.moxi.mougblog.base.validator.group.Insert;
+import com.moxi.mougblog.base.validator.group.Update;
 import com.moxi.mougblog.base.vo.BaseVO;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,16 +21,18 @@ import java.util.Date;
  */
 @Data
 public class UserVO extends BaseVO<UserVO> {
+
     /**
      * 用户名
      */
     @NotBlank(groups = {Insert.class, GetOne.class})
+    @Range(groups = {Insert.class, Update.class}, min = 5, max = 30)
     private String userName;
 
     /**
      * 密码
      */
-    @NotBlank(groups = {Insert.class, GetOne.class})
+    @NotBlank(groups = {GetOne.class})
     private String passWord;
 
     /**
@@ -82,6 +86,7 @@ public class UserVO extends BaseVO<UserVO> {
     /**
      * 自我简介最多150字
      */
+    @Range(groups = {Insert.class, Update.class}, max = 200)
     private String summary;
 
 
@@ -115,5 +120,16 @@ public class UserVO extends BaseVO<UserVO> {
      */
     @TableField(exist = false)
     private String photoUrl;
+
+    /**
+     * OrderBy排序字段（desc: 降序）
+     */
+    private String orderByDescColumn;
+
+    /**
+     * OrderBy排序字段（asc: 升序）
+     */
+    private String orderByAscColumn;
+
 
 }

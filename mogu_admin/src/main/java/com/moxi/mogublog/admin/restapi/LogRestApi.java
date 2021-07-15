@@ -22,11 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p>
  * 日志记录表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @since 2018年9月24日15:45:18
  */
 @RestController
@@ -36,10 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class LogRestApi {
 
     @Autowired
-    SysLogService sysLogService;
-
+    private SysLogService sysLogService;
     @Autowired
-    ExceptionLogService exceptionLogService;
+    private ExceptionLogService exceptionLogService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取操作日志列表", notes = "获取操作日志列表", response = String.class)

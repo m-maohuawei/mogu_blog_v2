@@ -4,7 +4,6 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.BlogService;
 import com.moxi.mogublog.xo.vo.BlogVO;
@@ -29,12 +28,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * <p>
  * 博客表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 
 @RestController
@@ -44,7 +41,7 @@ import java.util.List;
 public class BlogRestApi {
 
     @Autowired
-    BlogService blogService;
+    private BlogService blogService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取博客列表", notes = "获取博客列表", response = String.class)
@@ -52,7 +49,7 @@ public class BlogRestApi {
     public String getList(@Validated({GetList.class}) @RequestBody BlogVO blogVO, BindingResult result) {
 
         ThrowableUtils.checkParamArgument(result);
-        return ResultUtil.result(SysConf.SUCCESS, blogService.getPageList(blogVO));
+        return ResultUtil.successWithData(blogService.getPageList(blogVO));
     }
 
     @AvoidRepeatableCommit
@@ -64,7 +61,6 @@ public class BlogRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
         return blogService.addBlog(blogVO);
     }
 
@@ -76,7 +72,6 @@ public class BlogRestApi {
 
         return blogService.uploadLocalBlog(filedatas);
     }
-
 
     @AuthorityVerify
     @OperationLogger(value = "编辑博客")

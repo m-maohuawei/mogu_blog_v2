@@ -2,10 +2,12 @@ package com.moxi.mogublog.admin.annotion.OperationLogger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.moxi.mogublog.admin.global.RedisConf;
 import com.moxi.mogublog.admin.global.SysConf;
+import com.moxi.mogublog.commons.config.security.SecurityUser;
 import com.moxi.mogublog.commons.entity.ExceptionLog;
 import com.moxi.mogublog.utils.*;
-import com.moxi.mougblog.base.global.BaseSysConf;
+import com.moxi.mougblog.base.global.Constants;
 import com.moxi.mougblog.base.holder.RequestHolder;
 import com.moxi.mougblog.base.util.RequestUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +31,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 日志切面
+ *
+ * @author 陌溪
+ * @date 2020年12月31日21:26:04
  */
 @Aspect
 @Component
@@ -37,7 +44,7 @@ public class LoggerAspect {
     RedisUtil redisUtil;
 
     @Autowired
-    SysLogHandle sysLogHandle;
+    ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     /**
      * 开始时间
@@ -79,12 +86,12 @@ public class LoggerAspect {
         String operationName = AspectUtil.INSTANCE.parseParams(joinPoint.getArgs(), operationLogger.value());
 
         //从Redis中获取IP来源
-        String jsonResult = redisUtil.get(SysConf.IP_SOURCE + BaseSysConf.REDIS_SEGMENTATION + ip);
+        String jsonResult = redisUtil.get(RedisConf.IP_SOURCE + Constants.SYMBOL_COLON + ip);
         if (StringUtils.isEmpty(jsonResult)) {
             String addresses = IpUtils.getAddresses(SysConf.IP + SysConf.EQUAL_TO + ip, SysConf.UTF_8);
             if (StringUtils.isNotEmpty(addresses)) {
                 exception.setIpSource(addresses);
-                redisUtil.setEx(SysConf.IP_SOURCE + BaseSysConf.REDIS_SEGMENTATION + ip, addresses, 24, TimeUnit.HOURS);
+                redisUtil.setEx(RedisConf.IP_SOURCE + Constants.SYMBOL_COLON + ip, addresses, 24, TimeUnit.HOURS);
             }
         } else {
             exception.setIpSource(jsonResult);
@@ -137,12 +144,18 @@ public class LoggerAspect {
 
         // 获取参数名称和值
         Map<String, Object> nameAndArgsMap = AopUtils.getFieldsName(point);
-
+        // 当前操作用户
+        SecurityUser securityUser = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String paramsJson = JSONObject.toJSONString(nameAndArgsMap);
+        String type = request.getMethod();
+        String ip = IpUtils.getIpAddr(request);
+        String url = request.getRequestURI();
 
         // 异步存储日志
-        sysLogHandle.setSysLogHandle(paramsJson, point.getTarget().getClass().getName(), point.getSignature().getName(), bussinessName, startTime);
-
-        sysLogHandle.onRun();
+        threadPoolTaskExecutor.execute(
+                new SysLogHandle(ip, type, url, securityUser,
+                        paramsJson, point.getTarget().getClass().getName(),
+                        point.getSignature().getName(), bussinessName,
+                        startTime, redisUtil));
     }
 }

@@ -6,7 +6,9 @@ const app = {
       opened: !+Cookies.get('sidebarStatus'),
       withoutAnimation: false
     },
-    device: 'desktop'
+    device: 'desktop',
+    openNotificationDialogVisible: true, // 仪表盘弹框通知
+    blogForm: {}, // 缓存博客表单信息
   },
   mutations: {
     TOGGLE_SIDEBAR: state => {
@@ -25,7 +27,13 @@ const app = {
     },
     TOGGLE_DEVICE: (state, device) => {
       state.device = device
-    }
+    },
+    setOpenNotification: (state, openNotificationDialogVisible) => {
+      state.openNotificationDialogVisible = openNotificationDialogVisible
+    },
+    setBlogForm: (state, blogForm) => {
+      state.blogForm = blogForm
+    },
   },
   actions: {
     ToggleSideBar: ({ commit }) => {

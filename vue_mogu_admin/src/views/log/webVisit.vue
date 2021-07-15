@@ -2,7 +2,7 @@
   <div class="app-container">
       <!-- 查询和其他操作 -->
 	    <div class="filter-container" style="margin: 10px 0 10px 0;">
-				<el-input clearable class="filter-item" style="width: 200px;" v-model="keyword" placeholder="关键字"></el-input>
+				<el-input clearable class="filter-item" style="width: 200px;" v-model="keyword" placeholder="用户行为"></el-input>
         <el-date-picker
           clearable
           v-model="value5"
@@ -26,7 +26,7 @@
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="IP" width="120" align="center">
+      <el-table-column label="IP" width="150" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.ip }}</span>
 	      </template>
@@ -172,11 +172,10 @@ export default {
       });
     },
     handleFind: function() {
-      console.log(this.value5);
+      this.currentPage = 1
       this.webVisitList();
     },
     handleCurrentChange: function(val) {
-      console.log("点击了换页");
       this.currentPage = val;
       this.webVisitList();
     }
@@ -195,5 +194,6 @@ export default {
   .emoji-size-small {
     zoom: 0.3;
     margin: 5px;
+    vertical-align: middle;
   }
 </style>

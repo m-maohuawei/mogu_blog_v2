@@ -32,10 +32,14 @@
       <el-button @click="handleFind" class="filter-item" icon="el-icon-search" type="primary"
                  v-permission="'/user/getList'">查找
       </el-button>
-      <!--      <el-button class="filter-item" type="primary" @click="handleAdd" icon="el-icon-edit">添加用户</el-button>-->
+
+      <el-button class="filter-item" type="primary" @click="handleAdd" icon="el-icon-edit" v-permission="'/user/add'">添加用户</el-button>
     </div>
 
-    <el-table :data="tableData" style="width: 100%">
+    <el-table :data="tableData"
+              style="width: 100%"
+              @sort-change="changeSort"
+              :default-sort="{prop: 'createTime', order: 'descending'}">
       <el-table-column type="selection"></el-table-column>
 
       <el-table-column align="center" label="序号" width="60">
@@ -47,26 +51,20 @@
       <el-table-column align="center" label="头像" width="120">
         <template slot-scope="scope">
           <img
-            :src="scope.row.photoUrl ? BASE_IMAGE_URL + scope.row.photoUrl:'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'" onerror="onerror=null;src='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'"
+            :src="scope.row.photoUrl ? scope.row.photoUrl:defaultAvatar" onerror="onerror=null;src=defaultAvatar"
             style="width: 100px;height: 100px;"
           >
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="用户名" width="150">
+      <el-table-column align="center" label="昵称" width="150">
         <template slot-scope="scope">
           <span>{{ scope.row.nickName }}</span>
         </template>
       </el-table-column>
 
-      <!--      <el-table-column label="性别" width="100">-->
-      <!--        <template slot-scope="scope">-->
-      <!--          <el-tag v-if="scope.row.gender==1" type="success">男</el-tag>-->
-      <!--          <el-tag v-if="scope.row.gender==2" type="danger">女</el-tag>-->
-      <!--        </template>-->
-      <!--      </el-table-column>-->
 
-      <el-table-column align="center" label="账号来源" width="100">
+      <el-table-column align="center" label="账号来源" width="100" prop="source" sortable="custom" :sort-by="['source']">
         <template slot-scope="scope">
           <template>
             <el-tag :key="item.uid" :type="item.listClass" v-for="item in accountSourceDictList"
@@ -76,7 +74,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="评论状态" width="100">
+      <el-table-column align="center" label="评论状态" width="100" prop="commentStatus" sortable="custom" :sort-by="['commentStatus']">
         <template slot-scope="scope">
           <template>
             <el-tag :key="item.uid" :type="item.listClass" v-for="item in commentStatusDictList"
@@ -96,7 +94,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="登录次数" width="100">
+      <el-table-column align="center" label="登录次数" width="100" prop="loginCount" sortable="custom" :sort-by="['loginCount']">
         <template slot-scope="scope">
           <span>{{ scope.row.loginCount }}</span>
         </template>
@@ -120,7 +118,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="最后登录时间" width="160">
+      <el-table-column align="center" label="最后登录时间" width="160" prop="lastLoginTime" sortable="custom" :sort-by="['lastLoginTime']">
         <template slot-scope="scope">
           <span>{{ scope.row.lastLoginTime }}</span>
         </template>
@@ -135,6 +133,12 @@
       <el-table-column align="center" label="IP来源" width="160">
         <template slot-scope="scope">
           <span>{{ scope.row.ipSource }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="创建时间" width="160" align="center" prop="createTime" sortable="custom" :sort-by="['createTime']">
+        <template slot-scope="scope">
+          <span>{{ scope.row.createTime }}</span>
         </template>
       </el-table-column>
 
@@ -182,7 +186,7 @@
         <el-form-item :label-width="formLabelWidth" label="用户头像">
           <div class="imgBody" v-if="form.photoUrl">
             <i @click="deletePhoto()" @mouseover="icon = true" class="el-icon-error inputClass" v-show="icon"></i>
-            <img @mouseout="icon = false" @mouseover="icon = true" v-bind:src="BASE_IMAGE_URL + form.photoUrl"/>
+            <img @mouseout="icon = false" @mouseover="icon = true" v-bind:src="form.photoUrl"/>
           </div>
 
           <div @click="checkPhoto" class="uploadImgBody" v-else>
@@ -192,15 +196,17 @@
 
         <el-row :gutter="24">
           <el-col :span="9">
-            <el-form-item :label-width="formLabelWidth" label="用户名" prop="nickName">
+            <el-form-item :label-width="formLabelWidth" label="用户名" prop="userName">
+              <el-input v-model="form.userName"></el-input>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="9">
+            <el-form-item :label-width="formLabelWidth" label="昵称" prop="nickName">
               <el-input v-model="form.nickName"></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="9">
-            <el-form-item :label-width="formLabelWidth" label="邮箱" prop="email">
-              <el-input auto-complete="off" v-model="form.email"></el-input>
-            </el-form-item>
-          </el-col>
+
         </el-row>
 
         <el-row :gutter="24">
@@ -217,9 +223,27 @@
         </el-row>
 
         <el-row :gutter="24">
-          <el-col :span="6">
-            <el-form-item label="评论状态" label-width="120px" prop="commentStatus">
-              <el-select placeholder="请选择" size="small" style="width:100px" v-model="form.commentStatus">
+          <el-col :span="9">
+            <el-form-item :label-width="formLabelWidth" label="邮箱" prop="email">
+              <el-input auto-complete="off" v-model="form.email"></el-input>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="9">
+            <el-form-item label="性别" :label-width="formLabelWidth" prop="gender">
+              <el-radio :key="gender.uid" :label="gender.dictValue" border
+                        size="medium" v-for="gender in genderDictList" v-model="form.gender">{{gender.dictLabel}}
+              </el-radio>
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+
+
+        <el-row :gutter="24">
+          <el-col :span="9">
+            <el-form-item label="评论状态" :label-width="formLabelWidth" prop="commentStatus">
+              <el-select placeholder="请选择" style="width:205px" v-model="form.commentStatus">
                 <el-option
                   :key="item.uid"
                   :label="item.dictLabel"
@@ -230,9 +254,9 @@
             </el-form-item>
           </el-col>
 
-          <el-col :span="6">
-            <el-form-item label="用户标签" label-width="90px" prop="userTag">
-              <el-select placeholder="请选择" size="small" style="width:100px" v-model="form.userTag">
+          <el-col :span="9">
+            <el-form-item label="用户标签" :label-width="formLabelWidth" prop="userTag">
+              <el-select placeholder="请选择"  style="width:205px" v-model="form.userTag">
                 <el-option
                   :key="item.uid"
                   :label="item.dictLabel"
@@ -240,14 +264,6 @@
                   v-for="item in userTagDictList"
                 ></el-option>
               </el-select>
-            </el-form-item>
-          </el-col>
-
-          <el-col :span="8">
-            <el-form-item label="性别" label-width="50px" prop="gender">
-              <el-radio :key="gender.uid" :label="gender.dictValue" border
-                        size="medium" v-for="gender in genderDictList" v-model="form.gender">{{gender.dictLabel}}
-              </el-radio>
             </el-form-item>
           </el-col>
         </el-row>
@@ -283,7 +299,7 @@
 </template>
 
 <script>
-  import {deleteUser, editUser, getUserList, resetUserPassword} from "@/api/user";
+  import {deleteUser, addUser, editUser, getUserList, resetUserPassword} from "@/api/user";
   import AvatarCropper from '@/components/AvatarCropper'
   import {getListByDictTypeList} from "@/api/sysDictData"
 
@@ -297,7 +313,6 @@
         imagecropperShow: false,
         imagecropperKey: 0,
         url: process.env.PICTURE_API + "/file/cropperPicture",
-        BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
         tableData: [],
         keyword: "",
         accountSourceKeyword: "",
@@ -316,9 +331,16 @@
         commentStatusDictList: [], //评论状态字典
         genderDictList: [], //评论状态字典
         userTagDictList: [], // 用户标签列表
+        defaultAvatar: this.$SysConf.defaultAvatar, // 默认头像
+        orderByDescColumn: "", // 降序字段
+        orderByAscColumn: "", // 升序字段
         rules: {
-          nickName: [
+          userName: [
             {required: true, message: '用户名不能为空', trigger: 'blur'},
+            {min: 5, max: 30, message: '长度在5到30个字符'},
+          ],
+          nickName: [
+            {required: true, message: '昵称不能为空', trigger: 'blur'},
             {min: 1, max: 30, message: '长度在1到30个字符'},
           ],
           commentStatus: [
@@ -343,11 +365,10 @@
       AvatarCropper
     },
     created() {
-
       //传递过来的pictureSordUid
       let source = this.$route.query.source;
       let nickName = this.$route.query.nickName;
-      if (source != undefined && nickName != undefined) {
+      if (source != undefined || nickName != undefined) {
         this.accountSourceKeyword = source;
         this.keyword = nickName;
         this.userList();
@@ -358,6 +379,18 @@
       this.userList();
     },
     methods: {
+      // 从后台获取数据,重新排序
+      changeSort (val) {
+        // 根据当前排序重新获取后台数据,一般后台会需要一个排序的参数
+        if(val.order == "ascending") {
+          this.orderByAscColumn = val.prop
+          this.orderByDescColumn = ""
+        } else {
+          this.orderByAscColumn = ""
+          this.orderByDescColumn = val.prop
+        }
+        this.userList()
+      },
       userList: function () {
         var params = {};
         params.keyword = this.keyword;
@@ -365,10 +398,11 @@
         params.source = this.accountSourceKeyword;
         params.currentPage = this.currentPage;
         params.pageSize = this.pageSize;
-
+        params.orderByDescColumn = this.orderByDescColumn
+        params.orderByAscColumn = this.orderByAscColumn
         getUserList(params).then(response => {
           console.log("getUserList", response);
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             this.tableData = response.data.records;
             this.currentPage = response.data.current;
             this.pageSize = response.data.size;
@@ -403,7 +437,7 @@
       getDictList: function () {
         var dictTypeList = ['sys_account_source', 'sys_comment_status', 'sys_user_sex', 'sys_user_tag']
         getListByDictTypeList(dictTypeList).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             var dictMap = response.data;
             this.accountSourceDictList = dictMap.sys_account_source.list
             this.commentStatusDictList = dictMap.sys_comment_status.list
@@ -419,6 +453,7 @@
         return formObject;
       },
       handleFind: function () {
+        this.currentPage = 1
         this.userList();
       },
       handleAdd: function () {
@@ -443,18 +478,16 @@
             var params = {};
             params.uid = row.uid;
             deleteUser(params).then(response => {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
-              that.userList();
+              if(response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
+                that.userList();
+              } else {
+                this.$commonUtil.message.error(response.message)
+              }
             });
           })
           .catch(() => {
-            this.$message({
-              type: "info",
-              message: "已取消删除"
-            });
+            this.$commonUtil.message.info("已取消删除")
           });
       },
       handleUpdatePassword: function (row) {
@@ -468,18 +501,16 @@
             var params = {};
             params.uid = row.uid;
             resetUserPassword(params).then(response => {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
-              that.userList();
+              if(response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
+                that.userList();
+              } else {
+                this.$commonUtil.message.success(response.message)
+              }
             });
           })
           .catch(() => {
-            this.$message({
-              type: "info",
-              message: "已取消删除"
-            });
+            this.$commonUtil.message.info("已取消重置")
           });
       },
       handleCurrentChange: function (val) {
@@ -491,29 +522,48 @@
           if (!valid) {
             console.log("校验出错")
           } else {
-            editUser(this.form).then(response => {
-              if (response.code == "success") {
-                this.$notify({
-                  title: "成功",
-                  message: "保存成功！",
-                  type: "success"
-                });
-                this.dialogFormVisible = false
-                this.userList();
-              } else {
-                this.$notify.error({
-                  title: "失败",
-                  message: response.data
-                });
-              }
-            });
+            if(this.isEditForm) {
+              editUser(this.form).then(response => {
+                if (response.code == this.$ECode.SUCCESS) {
+                  this.$notify({
+                    title: "成功",
+                    message: response.message,
+                    type: "success"
+                  });
+                  this.dialogFormVisible = false
+                  this.userList();
+                } else {
+                  this.$notify.error({
+                    title: "失败",
+                    message: response.message
+                  });
+                }
+              });
+            } else {
+              addUser(this.form).then(response => {
+                if (response.code == this.$ECode.SUCCESS) {
+                  this.$notify({
+                    title: "成功",
+                    message: response.message,
+                    type: "success"
+                  });
+                  this.dialogFormVisible = false
+                  this.userList();
+                } else {
+                  this.$notify.error({
+                    title: "失败",
+                    message: response.message
+                  });
+                }
+              });
+            }
           }
         })
       }
     }
   };
 </script>
-<style>
+<style scoped>
   .avatar-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     border-radius: 6px;

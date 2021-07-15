@@ -20,6 +20,7 @@ import com.moxi.mogublog.xo.utils.WebUtil;
 import com.moxi.mogublog.xo.vo.CommentVO;
 import com.moxi.mougblog.base.enums.ECommentSource;
 import com.moxi.mougblog.base.enums.EStatus;
+import com.moxi.mougblog.base.exception.exceptionType.DeleteException;
 import com.moxi.mougblog.base.global.BaseSQLConf;
 import com.moxi.mougblog.base.serviceImpl.SuperServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,32 +30,25 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * <p>
  * 评论表 服务实现类
- * </p>
  *
- * @author xuzhixiang
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 @Service
 public class CommentServiceImpl extends SuperServiceImpl<CommentMapper, Comment> implements CommentService {
 
     @Resource
-    CommentMapper commentMapper;
-
+    private CommentMapper commentMapper;
     @Autowired
-    WebUtil webUtil;
-
+    private WebUtil webUtil;
     @Autowired
-    CommentService commentService;
-
+    private CommentService commentService;
     @Autowired
-    UserService userService;
-
+    private UserService userService;
     @Autowired
-    BlogService blogService;
-
-    @Autowired
+    private BlogService blogService;
+    @Resource
     private PictureFeignClient pictureFeignClient;
 
     @Override
@@ -175,8 +169,14 @@ public class CommentServiceImpl extends SuperServiceImpl<CommentMapper, Comment>
 //        });
 
         for (Comment item : commentList) {
-            ECommentSource commentSource = ECommentSource.valueOf(item.getSource());
-            item.setSourceName(commentSource.getName());
+
+            try {
+                ECommentSource commentSource = ECommentSource.valueOf(item.getSource());
+                item.setSourceName(commentSource.getName());
+            } catch (Exception e) {
+                log.error("ECommentSource 转换异常");
+            }
+
             if (StringUtils.isNotEmpty(item.getUserUid())) {
                 item.setUser(userMap.get(item.getUserUid()));
             }
@@ -204,7 +204,7 @@ public class CommentServiceImpl extends SuperServiceImpl<CommentMapper, Comment>
         comment.setStatus(EStatus.ENABLE);
         comment.setUpdateTime(new Date());
         comment.insert();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.INSERT_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.INSERT_SUCCESS);
     }
 
     @Override
@@ -219,7 +219,7 @@ public class CommentServiceImpl extends SuperServiceImpl<CommentMapper, Comment>
         comment.setStatus(EStatus.ENABLE);
         comment.setUpdateTime(new Date());
         comment.updateById();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.UPDATE_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.UPDATE_SUCCESS);
     }
 
     @Override
@@ -228,13 +228,13 @@ public class CommentServiceImpl extends SuperServiceImpl<CommentMapper, Comment>
         comment.setStatus(EStatus.DISABLED);
         comment.setUpdateTime(new Date());
         comment.updateById();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.DELETE_SUCCESS);
     }
 
     @Override
     public String deleteBatchComment(List<CommentVO> commentVOList) {
         if (commentVOList.size() <= 0) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.PARAM_INCORRECT);
+            return ResultUtil.errorWithMessage(MessageConf.PARAM_INCORRECT);
         }
         List<String> uids = new ArrayList<>();
         commentVOList.forEach(item -> {
@@ -246,10 +246,25 @@ public class CommentServiceImpl extends SuperServiceImpl<CommentMapper, Comment>
             item.setUpdateTime(new Date());
             item.setStatus(EStatus.DISABLED);
         });
-
         commentService.updateBatchById(commentList);
+        return ResultUtil.successWithMessage(MessageConf.DELETE_SUCCESS);
+    }
 
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
+    @Override
+    public String batchDeleteCommentByBlogUid(List<String> blogUidList) {
+        if(blogUidList.size() <= 0) {
+            throw new DeleteException();
+        }
+        QueryWrapper<Comment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(SQLConf.BLOG_UID, blogUidList);
+        List<Comment> commentList = commentService.list(queryWrapper);
+        if(commentList.size() > 0) {
+            commentList.forEach(item -> {
+                item.setStatus(EStatus.DISABLED);
+            });
+            commentService.updateBatchById(commentList);
+        }
+        return ResultUtil.successWithMessage(MessageConf.DELETE_SUCCESS);
     }
 
 }

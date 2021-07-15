@@ -1,5 +1,6 @@
 package com.moxi.mogublog.commons.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -42,6 +43,7 @@ public class Admin extends SuperEntity<Admin> {
     /**
      * 昵称
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String nickName;
 
     /**
@@ -52,11 +54,13 @@ public class Admin extends SuperEntity<Admin> {
     /**
      * 个人头像
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String avatar;
 
     /**
      * 邮箱
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String email;
 
     /**
@@ -68,32 +72,39 @@ public class Admin extends SuperEntity<Admin> {
 
     /**
      * 手机
+     * updateStrategy = FieldStrategy.IGNORED ：表示更新时候忽略非空判断
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String mobile;
 
     /**
      * QQ号
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String qqNumber;
 
     /**
      * 微信号
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String weChat;
 
     /**
      * 职业
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String occupation;
 
     /**
      * 自我简介最多150字
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String summary;
 
     /**
      * 个人履历（Markdown）
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String personResume;
 
     /**
@@ -148,5 +159,23 @@ public class Admin extends SuperEntity<Admin> {
      */
     @TableField(exist = false)
     private String validCode;
+
+    /**
+     * 已用网盘容量
+     */
+    @TableField(exist = false)
+    private Long storageSize;
+
+    /**
+     * 最大网盘容量
+     */
+    @TableField(exist = false)
+    private Long maxStorageSize;
+
+    /**
+     * 令牌UID【主要用于换取token令牌，防止token直接暴露到在线用户管理中】
+     */
+    @TableField(exist = false)
+    private String tokenUid;
 
 }

@@ -1,6 +1,6 @@
 package com.moxi.mogublog.picture.service;
 
-import com.moxi.mogublog.picture.entity.NetworkDisk;
+import com.moxi.mogublog.commons.entity.NetworkDisk;
 import com.moxi.mogublog.picture.vo.NetworkDiskVO;
 import com.moxi.mougblog.base.service.SuperService;
 
@@ -47,12 +47,11 @@ public interface NetworkDiskService extends SuperService<NetworkDisk> {
     NetworkDisk selectFileById(NetworkDisk networkDisk);
 
     /**
-     * 通过用户ID查询文件
+     * 查询目录结构树
      *
-     * @param networkDisk
      * @return
      */
-    List<NetworkDisk> selectFilePathTreeByUserid(NetworkDisk networkDisk);
+    List<NetworkDisk> selectFilePathTree();
 
     /**
      * 查询文件列表
@@ -88,19 +87,16 @@ public interface NetworkDiskService extends SuperService<NetworkDisk> {
     /**
      * 通过文件ID删除文件
      *
-     * @param fileidList
+     * @param fileIdList
      */
-    void deleteFileByIds(List<Integer> fileidList);
+    void deleteFileByIds(List<Integer> fileIdList);
 
     /**
      * 通过路径更新文件
      *
-     * @param oldfilepath
-     * @param newfilepath
-     * @param filename
-     * @param extendname
+     * @param networkDiskVO
      */
-    void updateFilepathByFilepath(String oldfilepath, String newfilepath, String filename, String extendname);
+    void updateFilepathByFilepath(NetworkDiskVO networkDiskVO);
 
     /**
      * 通过拓展名查询文件

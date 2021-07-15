@@ -5,7 +5,7 @@ import com.moxi.mougblog.base.global.BaseSQLConf;
 /**
  * SQL字段常量
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2018年10月20日15:13:09
  */
 public final class SQLConf extends BaseSQLConf {
@@ -24,6 +24,7 @@ public final class SQLConf extends BaseSQLConf {
     public final static String PICTURE_SORT_UID = "picture_sort_uid";
     public final static String SORT_NAME = "sort_name";
     public final static String UID = "uid";
+    public final static String OID = "oid";
     public final static String ADMINUID = "admin_uid";
     public final static String ROLEUID = "role_uid";
     public final static String PERMISSIONUID = "permission_uid";
@@ -59,9 +60,15 @@ public final class SQLConf extends BaseSQLConf {
     public final static String PARENT_UID = "parent_uid";
 
     /**
+     * t_web_navbar表
+     */
+    public final static String NAVBAR_LEVEL = "navbar_level";
+
+    /**
      * t_exception_log
      */
     public final static String EXCEPTION_JSON = "exceptionJson";
+    public final static String SPEND_TIME = "spend_Time";
 
     /**
      * t_todo
@@ -80,7 +87,6 @@ public final class SQLConf extends BaseSQLConf {
      */
     public static final String LEVEL = "level";
     public final static String SUMMARY = "summary";
-    public static final String TagUid = "tag_uid";
 
     public static final String AUTHOR = "author";
     public static final String IS_SHOW = "is_show";

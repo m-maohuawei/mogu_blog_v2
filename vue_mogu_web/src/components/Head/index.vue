@@ -12,7 +12,7 @@
 import { getWebConfig } from "../../api/index";
 
 export default {
-  name: "Footer",
+  name: "Head",
   data() {
     return {
       info: {}
@@ -20,7 +20,7 @@ export default {
   },
   created() {
     getWebConfig().then(response => {
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         this.info = response.data;
       }
     });

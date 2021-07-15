@@ -40,7 +40,7 @@
                 placement="top"
               >
                 <el-card>
-                  <h4 @click="goToList('blogContent', item.uid)" class="itemTitle">{{item.title}}</h4>
+                  <h4 @click="goToList('blogContent', item)" class="itemTitle">{{item.title}}</h4>
                   <br>
                   <el-tag class="elTag" v-if="item.isOriginal==1" type="danger">原创</el-tag>
                   <el-tag class="elTag" v-if="item.isOriginal==0" type="info">转载</el-tag>
@@ -48,21 +48,22 @@
                   <el-tag
                     class="elTag"
                     v-if="item.author"
-                    @click="goToList('author', item.author)"
+                    @click="goToList('author', item)"
                   >{{item.author}}</el-tag>
 
                   <el-tag
                     class="elTag"
                     type="success"
                     v-if="item.blogSort != null"
-                    @click="goToList('blogSort', item.blogSort.uid)"
+                    @click="goToList('blogSort', item.blogSort)"
                   >{{item.blogSort.sortName}}</el-tag>
                   <el-tag
                     class="elTag"
                     v-for="tagItem in item.tagList"
                     v-if="tagItem != null"
                     :key="tagItem.uid"
-                    @click="goToList('tag', tagItem.uid)"
+                    style="margin-left: 3px;"
+                    @click="goToList('tag', tagItem)"
                     type="warning"
                   >{{tagItem.content}}</el-tag>
                 </el-card>
@@ -94,7 +95,7 @@ export default {
   created() {
     var that = this;
     getSortList().then(response => {
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         var activities = response.data;
         var result = [];
         for (var a = 0; a < activities.length; a++) {
@@ -115,51 +116,55 @@ export default {
       var params = new URLSearchParams();
       params.append("monthDate", content);
       getArticleByMonth(params).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           this.itemByDate = response.data;
         }
       });
     },
     //跳转到搜索详情页
-    goToList(type, uid) {
+    goToList(type, entity) {
       switch (type) {
         case "tag":
-          {
-            let routeData = this.$router.resolve({
-              path: "/list",
-              query: { tagUid: uid }
-            });
-            window.open(routeData.href, "_blank");
-          }
+        {
+          // 标签uid
+          let routeData = this.$router.resolve({
+            path: "/list",
+            query: { tagUid: entity.uid }
+          });
+          window.open(routeData.href, "_blank");
+        }
           break;
         case "blogSort":
-          {
-            let routeData = this.$router.resolve({
-              path: "/list",
-              query: { sortUid: uid }
-            });
-            window.open(routeData.href, "_blank");
-          }
+        {
+          let routeData = this.$router.resolve({
+            path: "/list",
+            query: { sortUid: entity.blogSort.uid }
+          });
+          window.open(routeData.href, "_blank");
+        }
           break;
-
         case "author":
-          {
-            let routeData = this.$router.resolve({
-              path: "/list",
-              query: { author: uid }
-            });
-            window.open(routeData.href, "_blank");
-          }
+        {
+          let routeData = this.$router.resolve({
+            path: "/list",
+            query: { author: entity.author }
+          });
+          window.open(routeData.href, "_blank");
+        }
           break;
 
         case "blogContent":
-          {
+        {
+          if(entity.type == "0") {
             let routeData = this.$router.resolve({
               path: "/info",
-              query: { blogUid: uid }
+              query: { blogOid: entity.oid }
             });
             window.open(routeData.href, "_blank");
+          } else if(entity.type == "1") {
+            window.open(entity.outsideLink, '_blank');
           }
+        }
           break;
       }
     },

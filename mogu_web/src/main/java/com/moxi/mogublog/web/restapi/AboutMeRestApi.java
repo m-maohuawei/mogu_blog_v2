@@ -2,8 +2,8 @@ package com.moxi.mogublog.web.restapi;
 
 
 import com.moxi.mogublog.utils.ResultUtil;
+import com.moxi.mogublog.web.annotion.log.BussinessLog;
 import com.moxi.mogublog.web.global.SysConf;
-import com.moxi.mogublog.web.log.BussinessLog;
 import com.moxi.mogublog.xo.service.AdminService;
 import com.moxi.mogublog.xo.service.WebConfigService;
 import com.moxi.mougblog.base.enums.EBehavior;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 关于我 RestApi
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2018年11月12日14:51:54
  */
 @RestController
@@ -35,9 +35,6 @@ public class AboutMeRestApi {
 
     /**
      * 获取关于我的信息
-     *
-     * @author xzx19950624@qq.com
-     * @date 2018年11月6日下午8:57:48
      */
     @BussinessLog(value = "关于我", behavior = EBehavior.VISIT_PAGE)
     @ApiOperation(value = "关于我", notes = "关于我")

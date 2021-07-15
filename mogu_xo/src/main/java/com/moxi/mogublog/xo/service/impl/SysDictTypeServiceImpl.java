@@ -59,11 +59,22 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
             queryWrapper.like(SQLConf.DICT_TYPE, sysDictTypeVO.getDictType().trim());
         }
 
+        if(StringUtils.isNotEmpty(sysDictTypeVO.getOrderByAscColumn())) {
+            // 将驼峰转换成下划线
+            String column = StringUtils.underLine(new StringBuffer(sysDictTypeVO.getOrderByAscColumn())).toString();
+            queryWrapper.orderByAsc(column);
+        }else if(StringUtils.isNotEmpty(sysDictTypeVO.getOrderByDescColumn())) {
+            // 将驼峰转换成下划线
+            String column = StringUtils.underLine(new StringBuffer(sysDictTypeVO.getOrderByDescColumn())).toString();
+            queryWrapper.orderByDesc(column);
+        } else {
+            queryWrapper.orderByDesc(SQLConf.SORT, SQLConf.CREATE_TIME);
+        }
+
         Page<SysDictType> page = new Page<>();
         page.setCurrent(sysDictTypeVO.getCurrentPage());
         page.setSize(sysDictTypeVO.getPageSize());
         queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-        queryWrapper.orderByDesc(SQLConf.SORT, SQLConf.CREATE_TIME);
         IPage<SysDictType> pageList = sysDictTypeService.page(page, queryWrapper);
         return pageList;
     }
@@ -75,10 +86,10 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
         QueryWrapper<SysDictType> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(SQLConf.DICT_TYPE, sysDictTypeVO.getDictType());
         queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-        queryWrapper.last("LIMIT 1");
+        queryWrapper.last(SysConf.LIMIT_ONE);
         SysDictType temp = sysDictTypeService.getOne(queryWrapper);
         if (temp != null) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.ENTITY_EXIST);
+            return ResultUtil.errorWithMessage(MessageConf.ENTITY_EXIST);
         }
         SysDictType sysDictType = new SysDictType();
         sysDictType.setDictName(sysDictTypeVO.getDictName());
@@ -89,7 +100,7 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
         sysDictType.setCreateByUid(request.getAttribute(SysConf.ADMIN_UID).toString());
         sysDictType.setUpdateByUid(request.getAttribute(SysConf.ADMIN_UID).toString());
         sysDictType.insert();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.INSERT_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.INSERT_SUCCESS);
     }
 
     @Override
@@ -102,10 +113,10 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
             QueryWrapper<SysDictType> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(SQLConf.DICT_TYPE, sysDictTypeVO.getDictType());
             queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-            queryWrapper.last("LIMIT 1");
+            queryWrapper.last(SysConf.LIMIT_ONE);
             SysDictType temp = sysDictTypeService.getOne(queryWrapper);
             if (temp != null) {
-                return ResultUtil.result(SysConf.ERROR, MessageConf.ENTITY_EXIST);
+                return ResultUtil.errorWithMessage(MessageConf.ENTITY_EXIST);
             }
         }
 
@@ -121,7 +132,7 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
         // 获取Redis中特定前缀
         Set<String> keys = redisUtil.keys(SysConf.REDIS_DICT_TYPE + SysConf.REDIS_SEGMENTATION + "*");
         redisUtil.delete(keys);
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.UPDATE_SUCCESS);
+        return ResultUtil.successWithMessage(MessageConf.UPDATE_SUCCESS);
     }
 
     @Override
@@ -129,7 +140,7 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
         HttpServletRequest request = RequestHolder.getRequest();
         String adminUid = request.getAttribute(SysConf.ADMIN_UID).toString();
         if (sysDictTypeVOList.size() <= 0) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.PARAM_INCORRECT);
+            return ResultUtil.errorWithMessage(MessageConf.PARAM_INCORRECT);
         }
         List<String> uids = new ArrayList<>();
         sysDictTypeVOList.forEach(item -> {
@@ -142,7 +153,7 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
         queryWrapper.in(SQLConf.DICT_TYPE_UID, uids);
         Integer count = sysDictDataService.count(queryWrapper);
         if (count > 0) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.DICT_DATA_UNDER_THIS_SORT);
+            return ResultUtil.errorWithMessage(MessageConf.DICT_DATA_UNDER_THIS_SORT);
         }
         Collection<SysDictType> sysDictTypeList = sysDictTypeService.listByIds(uids);
         sysDictTypeList.forEach(item -> {
@@ -156,9 +167,9 @@ public class SysDictTypeServiceImpl extends SuperServiceImpl<SysDictTypeMapper, 
         Set<String> keys = redisUtil.keys(SysConf.REDIS_DICT_TYPE + SysConf.REDIS_SEGMENTATION + "*");
         redisUtil.delete(keys);
         if (save) {
-            return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
+            return ResultUtil.successWithMessage(MessageConf.DELETE_SUCCESS);
         } else {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.DELETE_FAIL);
+            return ResultUtil.errorWithMessage(MessageConf.DELETE_FAIL);
         }
     }
 }

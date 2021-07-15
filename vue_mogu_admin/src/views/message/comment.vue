@@ -2,10 +2,10 @@
   <div class="app-container">
       <!-- 查询和其他操作 -->
 	    <div class="filter-container" style="margin: 10px 0 10px 0;">
-				<el-input clearable class="filter-item" style="width: 200px;" v-model="queryParams.content" placeholder="请输入评论名"></el-input>
-        <el-input clearable class="filter-item" style="width: 150px;" v-model="queryParams.userName" placeholder="请输入用户名"></el-input>
+				<el-input clearable class="filter-item" style="width: 200px;" v-model="queryParams.content" placeholder="请输入评论内容"></el-input>
+        <el-input clearable class="filter-item" style="width: 150px;" v-model="queryParams.userName" placeholder="请输入评论人"></el-input>
 
-        <el-select v-model="queryParams.type" clearable placeholder="评论类型" style="width:110px">
+        <el-select v-model="queryParams.type" clearable placeholder="评论类型" style="margin-left:5px;width:110px">
           <el-option
             v-for="item in commentTypeDictList"
             :key="item.uid"
@@ -14,7 +14,7 @@
           ></el-option>
         </el-select>
 
-        <el-select v-model="queryParams.source" clearable placeholder="评论来源" style="width:110px">
+        <el-select v-model="queryParams.source" clearable placeholder="评论来源" style="margin-left:5px;width:110px">
           <el-option
             v-for="item in commentSourceDictList"
             :key="item.uid"
@@ -41,32 +41,32 @@
         <template slot-scope="scope">
           <img
             v-if="scope.row.user"
-            :src="BASE_IMAGE_URL + scope.row.user.photoUrl"
-            onerror="onerror=null;src='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'"
+            :src="scope.row.user.photoUrl"
+            onerror="onerror=null;src=defaultAvatar"
             style="width: 100px;height: 100px;"
           >
           <img
             v-else
-            src="https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif"
+            :src="defaultAvatar"
             style="width: 100px;height: 100px;"
           >
         </template>
       </el-table-column>
 
-	    <el-table-column label="评论人" width="100" align="center">
+	    <el-table-column label="评论人" width="150" align="center">
 	      <template slot-scope="scope">
-	        <span v-if="scope.row.user">{{ scope.row.user.nickName }}</span>
+          <el-tag type="primary" v-if="scope.row.user"  style="cursor: pointer;" @click.native="goUser(scope.row.user)">{{ scope.row.user.nickName }}</el-tag>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="被评论人" width="100" align="center">
+      <el-table-column label="被评论人" width="150" align="center">
         <template slot-scope="scope">
-          <span v-if="scope.row.toUser">{{ scope.row.toUser.nickName }}</span>
-          <span v-else>无</span>
+          <el-tag type="info" v-if="scope.row.toUser" style="cursor: pointer;" @click.native="goUser(scope.row.toUser)">{{ scope.row.toUser.nickName }}</el-tag>
+          <el-tag type="info" style="cursor: pointer;" v-else>无</el-tag>
         </template>
       </el-table-column>
 
-        <el-table-column label="类型" width="150" align="center">
+        <el-table-column label="类型" width="80" align="center">
           <template slot-scope="scope">
             <template>
               <el-tag type="danger" v-if="scope.row.type == 1">点赞</el-tag>
@@ -75,7 +75,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="来源" width="150" align="center">
+        <el-table-column label="来源" width="80" align="center">
           <template slot-scope="scope">
             <template>
               <el-tag type="warning" @click.native="goPage(scope.row.source, scope.row.blog)" style="cursor: pointer;">{{scope.row.sourceName}}</el-tag>
@@ -86,12 +86,12 @@
 <!--        <el-table-column label="来源博客" width="160" align="center">-->
 <!--          <template slot-scope="scope">-->
 <!--            <template>-->
-<!--              <el-tag type="error" v-if="scope.row.source == 'BLOG_INFO'" @click.native="onClick(scope.row.blog)" style="cursor: pointer;">{{subComment(scope.row.blog.title, 8 )}}</el-tag>-->
+<!--              <el-tag type="error" v-if="scope.row.source == 'BLOG_INFO'" @click.native="onClick(scope.row.blog)" style="cursor: pointer;">{{subStr(scope.row.blog.title, 8 )}}</el-tag>-->
 <!--            </template>-->
 <!--          </template>-->
 <!--        </el-table-column>-->
 
-        <el-table-column label="内容" width="250" align="center">
+        <el-table-column label="内容" width="300" align="center">
           <template slot-scope="scope">
 <!--            <el-popover-->
 <!--              v-if="scope.row.content"-->
@@ -99,7 +99,7 @@
 <!--              width="400"-->
 <!--              trigger="hover"-->
 <!--              :content="scope.row.content">-->
-<!--              <el-button slot="reference">{{subComment(scope.row.content, 10)}}</el-button>-->
+<!--              <el-button slot="reference">{{subStr(scope.row.content, 10)}}</el-button>-->
 <!--            </el-popover>-->
             <span v-html="$xss(scope.row.content, options)"></span>
           </template>
@@ -153,7 +153,6 @@ export default {
       }, //查询参数
       multipleSelection: [], //多选，用于批量删除
       BLOG_WEB_URL: process.env.BLOG_WEB_URL,
-      BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
       tableData: [],
       keyword: "",
       currentPage: 1,
@@ -166,6 +165,7 @@ export default {
       commentTypeDictList: [], //评论类型字典
       commentSourceDictList: [], //评论来源字典
       commentTypeDefaultValue: null, // 评论类型默认值
+      defaultAvatar: this.$SysConf.defaultAvatar, // 默认头像
     };
   },
   created() {
@@ -176,6 +176,11 @@ export default {
     this.getDictList()
   },
   methods: {
+    // 跳转到用户中心
+    goUser: function(user) {
+      console.log("go user", user)
+      this.$router.push({ path: "/user/user", query: { nickName: user.nickName } });
+    },
     // 跳转到该博客详情
     onClick: function(row) {
       console.log("点击跳转", row)
@@ -195,7 +200,7 @@ export default {
     getDictList: function () {
       var dictTypeList =  ['sys_comment_type', 'sys_comment_source']
       getListByDictTypeList(dictTypeList).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           var dictMap = response.data;
           this.commentTypeDictList = dictMap.sys_comment_type.list
           this.commentSourceDictList = dictMap.sys_comment_source.list
@@ -221,7 +226,7 @@ export default {
 			params.pageSize = this.pageSize
 
 			getCommentList(params).then(response => {
-			  if(response.code == "success") {
+			  if(response.code == this.$ECode.SUCCESS) {
           this.tableData = response.data.records;
           this.currentPage = response.data.current;
           this.pageSize = response.data.size;
@@ -229,37 +234,42 @@ export default {
         }
 			});
 		},
-    subComment(str, index) {
+    subStr(str, index) {
       if(str == null || str == undefined) {
         return "";
       }
 		  if(str.length < index){
 		    return str;
       } else {
-		    return str.substring(0, index) + "..."
+		    return str.substring(0, index) + ".."
       }
     },
 		handleFind: function() {
+      this.currentPage = 1
 			this.commentList();
 		},
     handleReply: function(row) {
       console.log("点击了回复");
     },
     handleDelete: function(row) {
-			var that = this;
-			let params = {}
-			params.uid = row.uid
-			deleteComment(params).then(response=> {
-          console.log(response);
-          this.$message({
-            type: "success",
-            message: response.data
-          });
-					that.commentList();
-			})
+      this.$confirm("此操作将把该评论删除, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          let params = {}
+          params.uid = row.uid
+          deleteComment(params).then(response=> {
+            this.$commonUtil.message.success(response.message)
+            this.commentList();
+          })
+        })
+        .catch(() => {
+          this.$commonUtil.info("已取消删除")
+        });
     },
     handleDeleteBatch: function() {
-      var that = this;
       var that = this;
       if(that.multipleSelection.length <= 0 ) {
         this.$message({
@@ -275,23 +285,19 @@ export default {
       })
         .then(() => {
           deleteBatchComment(that.multipleSelection).then(response => {
-            console.log(response);
-            this.$message({
-              type: "success",
-              message: response.data
-            });
+            if(response.code == that.$ECode.SUCCESS) {
+              that.$commonUtil.message.success(response.message)
+            } else {
+              that.$commonUtil.message.error(response.message)
+            }
             that.commentList();
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          that.$commonUtil.info("已取消删除")
         });
     },
     handleCurrentChange: function(val) {
-      console.log("点击了换页");
       this.currentPage = val;
       this.commentList();
     },
@@ -315,6 +321,7 @@ export default {
   .emoji-size-small {
     zoom: 0.3;
     margin: 5px;
+    vertical-align: middle;
   }
 </style>
 

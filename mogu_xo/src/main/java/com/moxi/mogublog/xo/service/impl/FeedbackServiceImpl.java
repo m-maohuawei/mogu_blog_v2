@@ -24,21 +24,18 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
- * <p>
  * 反馈表 服务实现类
- * </p>
  *
- * @author xuzhixiang
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 @Service
 public class FeedbackServiceImpl extends SuperServiceImpl<FeedbackMapper, Feedback> implements FeedbackService {
 
     @Autowired
-    FeedbackService feedbackService;
-
+    private FeedbackService feedbackService;
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Override
     public IPage<Feedback> getPageList(FeedbackVO feedbackVO) {
@@ -85,9 +82,6 @@ public class FeedbackServiceImpl extends SuperServiceImpl<FeedbackMapper, Feedba
     @Override
     public String addFeedback(FeedbackVO feedbackVO) {
         HttpServletRequest request = RequestHolder.getRequest();
-        if (request.getAttribute(SysConf.ADMIN_UID) != null) {
-            ResultUtil.result(SysConf.ERROR, MessageConf.OPERATION_FAIL);
-        }
         Feedback feedback = feedbackService.getById(feedbackVO.getUid());
         feedback.setTitle(feedbackVO.getTitle());
         feedback.setContent(feedbackVO.getContent());
@@ -110,9 +104,6 @@ public class FeedbackServiceImpl extends SuperServiceImpl<FeedbackMapper, Feedba
     @Override
     public String deleteBatchFeedback(List<FeedbackVO> feedbackVOList) {
         HttpServletRequest request = RequestHolder.getRequest();
-        if (request.getAttribute(SysConf.ADMIN_UID) != null) {
-            ResultUtil.result(SysConf.ERROR, MessageConf.OPERATION_FAIL);
-        }
         final String adminUid = request.getAttribute(SysConf.ADMIN_UID).toString();
         if (feedbackVOList.size() <= 0) {
             return ResultUtil.result(SysConf.ERROR, MessageConf.PARAM_INCORRECT);

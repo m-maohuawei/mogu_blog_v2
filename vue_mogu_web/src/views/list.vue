@@ -19,13 +19,13 @@
           <h3 class="blogtitle">
             <a
               href="javascript:void(0);"
-              @click="goToInfo(item.id?item.id:item.uid)"
+              @click="goToInfo(item)"
               v-html="item.title"
             >{{item.title}}</a>
           </h3>
           <span class="blogpic">
-            <a href="javascript:void(0);" @click="goToInfo(item.id?item.id:item.uid)" title>
-              <img v-if="item.photoUrl" :src="PICTURE_HOST + item.photoUrl" alt="">
+            <a href="javascript:void(0);" @click="goToInfo(item)" title>
+              <img v-if="item.photoUrl" :src="item.photoUrl" alt="">
             </a>
           </span>
           <p class="blogtext" v-html="item.summary">{{item.summary}}</p>
@@ -101,12 +101,12 @@ import {
   searchBlogBySort,
   searchBlogByAuthor
 } from "../api/search";
+import {getBlogByUid} from "../api/blogContent";
 
 export default {
   name: "list",
   data() {
     return {
-      PICTURE_HOST: process.env.PICTURE_HOST,
       blogData: [],
       keywords: "",
       currentPage: 1,
@@ -168,12 +168,21 @@ export default {
   },
   methods: {
     //跳转到文章详情
-    goToInfo(uid) {
-      let routeData = this.$router.resolve({
-        path: "/info",
-        query: { blogUid: uid }
-      });
-      window.open(routeData.href, '_blank');
+    goToInfo(blog) {
+      if(blog.type == "0") {
+        let routeData = this.$router.resolve({
+          path: "/info",
+          query: {blogOid: blog.oid}
+        });
+        window.open(routeData.href, '_blank');
+      } else if(blog.type == "1") {
+        var params = new URLSearchParams();
+        params.append("uid", blog.uid);
+        getBlogByUid(params).then(response => {
+          // 记录一下用户点击日志
+        });
+        window.open(blog.outsideLink, '_blank');
+      }
     },
     //点击了分类
     goToList(uid) {
@@ -207,7 +216,7 @@ export default {
         params.append("pageSize", that.pageSize);
         params.append("keywords", that.keywords);
         searchBlog(params).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             that.isEnd = false;
             //获取总页数
             that.totalPages = response.data.blogList.length;
@@ -216,7 +225,7 @@ export default {
             that.currentPage = response.data.currentPage;
             var blogData = response.data.blogList;
 
-            // 判断搜索的博客是否有
+            // 判断搜索的博客是否有内容
             if(response.data.total <= 0) {
               that.isEnd = true;
               that.loading = false;
@@ -245,7 +254,7 @@ export default {
         params.append("pageSize", that.pageSize);
 
         searchBlogByTag(params).then(response => {
-          if (response.code == "success" && response.data.records.length > 0) {
+          if (response.code == this.$ECode.SUCCESS && response.data.records.length > 0) {
             that.isEnd = false;
             //获取总页数
             that.totalPages = response.data.total;
@@ -284,7 +293,7 @@ export default {
         params.append("pageSize", that.pageSize);
 
         searchBlogBySort(params).then(response => {
-          if (response.code == "success" && response.data.records.length > 0) {
+          if (response.code == this.$ECode.SUCCESS && response.data.records.length > 0) {
             that.isEnd = false;
             //获取总页数
             that.totalPages = response.data.total;
@@ -320,7 +329,7 @@ export default {
         params.append("currentPage", that.currentPage);
         params.append("pageSize", that.pageSize);
         searchBlogByAuthor(params).then(response => {
-          if (response.code == "success" && response.data.records.length > 0) {
+          if (response.code == this.$ECode.SUCCESS && response.data.records.length > 0) {
             that.loading = false;
 
             that.isEnd = false;

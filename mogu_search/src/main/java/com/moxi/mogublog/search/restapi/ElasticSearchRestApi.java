@@ -47,8 +47,10 @@ public class ElasticSearchRestApi {
     @GetMapping("/elasticSearchBlog")
     public String searchBlog(HttpServletRequest request,
                              @RequestParam(required = false) String keywords,
-                             @RequestParam(name = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize) {
+                             @RequestParam(name = "currentPage", required = false, defaultValue = "1") Integer
+                                     currentPage,
+                             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer
+                                     pageSize) {
 
         if (StringUtils.isEmpty(keywords)) {
             return ResultUtil.result(SysConf.ERROR, MessageConf.KEYWORD_IS_NOT_EMPTY);
@@ -103,18 +105,18 @@ public class ElasticSearchRestApi {
         Integer size = 0;
 
         do {
-            
             // 查询blog信息
-            String result = webFeignClient.getNewBlog(page, row);
+            String result = webFeignClient.getBlogBySearch(page, row);
 
             //构建blog
             List<Blog> blogList = WebUtils.getList(result, Blog.class);
             size = blogList.size();
 
-            List<ESBlogIndex> eSBlogIndexList = blogList.stream()
+            List<ESBlogIndex> esBlogIndexList = blogList.stream()
                     .map(searchService::buidBlog).collect(Collectors.toList());
+
             //存入索引库
-            blogRepository.saveAll(eSBlogIndexList);
+            blogRepository.saveAll(esBlogIndexList);
             // 翻页
             page++;
         } while (size == 15);

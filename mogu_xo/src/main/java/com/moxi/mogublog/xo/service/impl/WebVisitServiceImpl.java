@@ -4,9 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.moxi.mogublog.commons.entity.*;
-import com.moxi.mogublog.utils.DateUtils;
-import com.moxi.mogublog.utils.IpUtils;
-import com.moxi.mogublog.utils.StringUtils;
+import com.moxi.mogublog.utils.*;
+import com.moxi.mogublog.xo.global.RedisConf;
 import com.moxi.mogublog.xo.global.SQLConf;
 import com.moxi.mogublog.xo.global.SysConf;
 import com.moxi.mogublog.xo.mapper.WebVisitMapper;
@@ -15,6 +14,7 @@ import com.moxi.mogublog.xo.vo.WebVisitVO;
 import com.moxi.mougblog.base.enums.EBehavior;
 import com.moxi.mougblog.base.enums.EStatus;
 import com.moxi.mougblog.base.global.BaseSysConf;
+import com.moxi.mougblog.base.global.Constants;
 import com.moxi.mougblog.base.serviceImpl.SuperServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,28 +27,28 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <p>
  * 用户访问记录表 服务实现类
- * </p>
  *
- * @author xuzhixiang
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 @Service
 public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVisit> implements WebVisitService {
 
     @Resource
-    WebVisitMapper webVisitMapper;
+    private WebVisitMapper webVisitMapper;
     @Autowired
-    TagService tagService;
+    private TagService tagService;
     @Autowired
-    BlogSortService blogSortService;
+    private BlogSortService blogSortService;
     @Autowired
-    BlogService blogService;
+    private BlogService blogService;
     @Autowired
-    LinkService linkService;
+    private LinkService linkService;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Async
     @Override
@@ -84,7 +84,6 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
 
     @Override
     public int getWebVisitCount() {
-
         // 获取今日开始和结束时间
         String startTime = DateUtils.getToDayStartTime();
         String endTime = DateUtils.getToDayEndTime();
@@ -93,15 +92,18 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
 
     @Override
     public Map<String, Object> getVisitByWeek() {
+        // 从Redis中获取一周访问量
+        String weekVisitJson = redisUtil.get(RedisConf.DASHBOARD + Constants.SYMBOL_COLON + RedisConf.WEEK_VISIT);
+        if (StringUtils.isNotEmpty(weekVisitJson)) {
+            Map<String, Object> weekVisitMap = JsonUtils.jsonToMap(weekVisitJson);
+            return weekVisitMap;
+        }
 
         // 获取到今天结束的时间
         String todayEndTime = DateUtils.getToDayEndTime();
-
         //获取最近七天的日期
         Date sevenDaysDate = DateUtils.getDate(todayEndTime, -6);
-
         String sevenDays = DateUtils.getOneDayStartTime(sevenDaysDate);
-
         // 获取最近七天的数组列表
         List<String> sevenDaysList = DateUtils.getDaysByN(7, "yyyy-MM-dd");
         // 获得最近七天的访问量
@@ -134,16 +136,16 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
                 uvList.add(0);
             }
         }
-
-        Map<String, Object> resultMap = new HashMap<>();
-
+        Map<String, Object> resultMap = new HashMap<>(Constants.NUM_THREE);
         // 不含年份的数组格式
         List<String> resultSevenDaysList = DateUtils.getDaysByN(7, "MM-dd");
-
         resultMap.put("date", resultSevenDaysList);
         resultMap.put("pv", pvList);
         resultMap.put("uv", uvList);
 
+        //TODO 可能会存在短期的数据不一致的问题，即零点时不能准时更新，而是要在0:10才会重新刷新纪录。 后期考虑加入定时器处理这个问题
+        // 将一周访问量存入Redis中【过期时间10分钟】
+        redisUtil.setEx(RedisConf.DASHBOARD + Constants.SYMBOL_COLON + RedisConf.WEEK_VISIT, JsonUtils.objectToJson(resultMap), 10, TimeUnit.MINUTES);
         return resultMap;
     }
 
@@ -156,7 +158,6 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
 
         // 设置关键字查询
         if (!StringUtils.isEmpty(webVisitVO.getKeyword()) && !StringUtils.isEmpty(webVisitVO.getKeyword().trim())) {
-
             String behavior = "";
             for (int a = 0; a < arr.length; a++) {
                 // 设置行为名称
@@ -185,28 +186,44 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
 
         List<WebVisit> list = pageList.getRecords();
         List<String> blogUids = new ArrayList<>();
+        List<String> blogOids = new ArrayList<>();
         List<String> tagUids = new ArrayList<>();
         List<String> sortUids = new ArrayList<>();
         List<String> linkUids = new ArrayList<>();
 
         list.forEach(item -> {
-            if (item.getBehavior().equals(EBehavior.BLOG_CONTNET.getBehavior())) {
-                blogUids.add(item.getModuleUid());
-            } else if (item.getBehavior().equals(EBehavior.BLOG_SORT.getBehavior())) {
+            // 当点击博客或者点赞博客时
+            if (item.getBehavior().equals(EBehavior.BLOG_CONTNET.getBehavior())
+                    || item.getBehavior().equals(EBehavior.BLOG_PRAISE.getBehavior())) {
+                // 从日志中提取出oid和uid
+                if(StringUtils.isNotEmpty(item.getModuleUid())) {
+                    blogUids.add(item.getModuleUid());
+                } else if(StringUtils.isNotEmpty(item.getOtherData())) {
+                    blogOids.add(item.getOtherData());
+                }
+            } else if (item.getBehavior().equals(EBehavior.BLOG_SORT.getBehavior()) || item.getBehavior().equals(EBehavior.VISIT_CLASSIFY.getBehavior())) {
                 sortUids.add(item.getModuleUid());
-            } else if (item.getBehavior().equals(EBehavior.BLOG_TAG.getBehavior())) {
+            } else if (item.getBehavior().equals(EBehavior.BLOG_TAG.getBehavior()) || item.getBehavior().equals(EBehavior.VISIT_TAG.getBehavior()) ) {
                 tagUids.add(item.getModuleUid());
             } else if (item.getBehavior().equals(EBehavior.FRIENDSHIP_LINK.getBehavior())) {
                 linkUids.add(item.getModuleUid());
             }
         });
         Collection<Blog> blogList = new ArrayList<>();
+        Collection<Blog> blogListByOid = new ArrayList<>();
         Collection<Tag> tagList = new ArrayList<>();
         Collection<BlogSort> sortList = new ArrayList<>();
         Collection<Link> linkList = new ArrayList<>();
 
+
         if (blogUids.size() > 0) {
             blogList = blogService.listByIds(blogUids);
+        }
+
+        if (blogOids.size() > 0) {
+            QueryWrapper<Blog> blogQueryWrapper = new QueryWrapper<>();
+            blogQueryWrapper.in(SQLConf.OID, blogOids);
+            blogListByOid = blogService.list(blogQueryWrapper);
         }
 
         if (tagUids.size() > 0) {
@@ -226,12 +243,16 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
             contentMap.put(item.getUid(), item.getTitle());
         });
 
+        blogListByOid.forEach(item -> {
+            contentMap.put(item.getOid() + "", item.getTitle());
+        });
+
         tagList.forEach(item -> {
             contentMap.put(item.getUid(), item.getContent());
         });
 
         sortList.forEach(item -> {
-            contentMap.put(item.getUid(), item.getContent());
+            contentMap.put(item.getUid(), item.getSortName());
         });
 
         linkList.forEach(item -> {
@@ -249,15 +270,20 @@ public class WebVisitServiceImpl extends SuperServiceImpl<WebVisitMapper, WebVis
             }
 
             if (item.getBehavior().equals(EBehavior.BLOG_CONTNET.getBehavior()) ||
+                    item.getBehavior().equals(EBehavior.BLOG_PRAISE.getBehavior()) ||
                     item.getBehavior().equals(EBehavior.BLOG_SORT.getBehavior()) ||
                     item.getBehavior().equals(EBehavior.BLOG_TAG.getBehavior()) ||
+                    item.getBehavior().equals(EBehavior.VISIT_TAG.getBehavior()) ||
+                    item.getBehavior().equals(EBehavior.VISIT_CLASSIFY.getBehavior()) ||
                     item.getBehavior().equals(EBehavior.FRIENDSHIP_LINK.getBehavior())) {
 
                 //从map中获取到对应的名称
                 if (StringUtils.isNotEmpty(item.getModuleUid())) {
                     item.setContent(contentMap.get(item.getModuleUid()));
+                } else {
+                    // 从otherData中获取博客oid
+                    item.setContent(contentMap.get(item.getOtherData()));
                 }
-
             } else {
                 item.setContent(item.getOtherData());
             }

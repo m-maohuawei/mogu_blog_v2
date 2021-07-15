@@ -27,7 +27,6 @@
     },
     data() {
       return {
-        loadingInstance: null, // loading对象
         group: 'mission',
         list1: [],
         list2: [],
@@ -36,7 +35,6 @@
       }
     },
     created() {
-      this.loadingInstance = Loading.service({ fullscreen: true, text:'正在努力加载中~' });
       this.blogList(1)
       this.blogList(2)
       this.blogList(3)
@@ -50,23 +48,20 @@
         params.pageSize = 10;
         params.useSort = 1;
         getBlogList(params).then(response => {
-          this.loadingInstance.close();
-          if(response.code == "success") {
-            console.log("推荐等级", level)
-            console.log("推荐博客",response.data)
+          if(response.code == this.$ECode.SUCCESS) {
             switch (level) {
               case 1: {
                 this.list1 = response.data.records;
-              }; break;
+              } break;
               case 2: {
                 this.list2 = response.data.records;
-              }; break;
+              } break;
               case 3: {
                 this.list3 = response.data.records;
-              }; break;
+              } break;
               case 4: {
                 this.list4 = response.data.records;
-              }; break;
+              } break;
             }
           }
         });
@@ -76,11 +71,8 @@
           list[a].sort = list.length - a;
         }
         editBatchBlog(list).then(response => {
-          if(response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
-            });
+          if(response.code == this.$ECode.SUCCESS) {
+            this.$commonUtil.message.success(response.message)
           }
         });
       },

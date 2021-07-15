@@ -1,9 +1,83 @@
 <template>
   <div class="app-container">
-    <el-tabs type="border-card">
-      <el-tab-pane v-permission="'/systemConfig/getSystemConfig'">
+    <el-tabs type="border-card" @tab-click="handleClick" v-model="activeName">
+      <el-tab-pane name="one" v-permission="'/systemConfig/getSystemConfig'">
+        <span slot="label"><i class="el-icon-edit"></i> 系统配置</span>
+        <el-form style="margin-left: 20px;" label-position="left"   label-width="140px" >
+
+          <aside>
+            通过开关选择博客编辑时的文本编辑器，以及文件显示方式<br/>
+          </aside>
+
+          <el-form-item label="封面图片显示优先级">
+            <el-radio v-for="item in picturePriorityDictList" :key="item.uid" v-model="form.picturePriority" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <el-form-item label="详情图片显示优先级">
+            <el-radio v-for="item in picturePriorityDictList" :key="item.uid" v-model="form.contentPicturePriority" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <el-form-item label="文本编辑器">
+            <el-radio v-for="item in editorModalDictList" :key="item.uid" v-model="form.editorModel" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <!--当有新的反馈，友链申请时进行通知，首先需要在系统管理处设置接收通知的邮箱 -->
+          <el-form-item label="网站消息邮件通知">
+            <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.startEmailNotification" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <!-- 仪表盘弹框通知，在用户登录后台的时候会出现，可以手动关闭 -->
+          <el-form-item label="仪表盘弹框通知">
+            <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.openDashboardNotification" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <!-- 仪表盘弹框通知，在用户登录后台的时候会出现，可以手动关闭 -->
+          <el-form-item label="注册用户邮件激活">
+            <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.openEmailActivate" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="submitForm()" v-permission="'/systemConfig/editSystemConfig'">保 存</el-button>
+          </el-form-item>
+
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane name="three" v-permission="'/systemConfig/getSystemConfig'">
         <span slot="label">
-          <i class="el-icon-date"></i> 七牛云配置
+          <i class="el-icon-date"></i> 本地文件存储
+        </span>
+        <el-form
+          style="margin-left: 20px;"
+          label-position="left"
+          :model="form"
+          label-width="120px"
+          :rules="rules"
+          ref="form"
+        >
+
+          <aside>
+            使用IO流将文件存储本地磁盘中<br/>
+          </aside>
+
+          <el-form-item label="本地文件域名" prop="localPictureBaseUrl">
+            <el-input v-model="form.localPictureBaseUrl" auto-complete="new-password" style="width: 400px"></el-input>
+          </el-form-item>
+
+          <el-form-item label="文件上传本地">
+            <el-radio v-for="item in yesNoDictList" :key="item.uid" v-model="form.uploadLocal" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="submitForm()" v-permission="'/systemConfig/editSystemConfig'">保 存</el-button>
+          </el-form-item>
+
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane name="four"  v-permission="'/systemConfig/getSystemConfig'">
+        <span slot="label">
+          <i class="el-icon-date"></i> 七牛云对象存储
         </span>
 
         <el-form
@@ -14,11 +88,11 @@
           :rules="rules"
           ref="form"
         >
-          <el-form-item label="本地图片域名" prop="localPictureBaseUrl">
-            <el-input v-model="form.localPictureBaseUrl" auto-complete="new-password" style="width: 400px"></el-input>
-          </el-form-item>
+          <aside>
+            使用 <a href="http://www.moguit.cn/#/info?blogUid=735ed389c4ad1efd321fed9ac58e646b">七牛云</a> 构建对象存储服务<br/>
+          </aside>
 
-          <el-form-item label="七牛云图片域名" prop="qiNiuPictureBaseUrl">
+          <el-form-item label="七牛云文件域名" prop="qiNiuPictureBaseUrl">
             <el-input v-model="form.qiNiuPictureBaseUrl" auto-complete="new-password" style="width: 400px"></el-input>
           </el-form-item>
 
@@ -43,17 +117,8 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="图片上传七牛云">
+          <el-form-item label="文件上传七牛云">
             <el-radio v-for="item in yesNoDictList" :key="item.uid" v-model="form.uploadQiNiu" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
-          </el-form-item>
-
-          <el-form-item label="图片上传本地">
-            <el-radio v-for="item in yesNoDictList" :key="item.uid" v-model="form.uploadLocal" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
-          </el-form-item>
-
-
-          <el-form-item label="图片显示优先级">
-            <el-radio v-for="item in picturePriorityDictList" :key="item.uid" v-model="form.picturePriority" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
           </el-form-item>
 
           <el-form-item>
@@ -63,9 +128,64 @@
         </el-form>
       </el-tab-pane>
 
-      <el-tab-pane name="two" v-permission="'/systemConfig/getSystemConfig'">
+      <el-tab-pane name="five" v-permission="'/systemConfig/getSystemConfig'">
+        <span slot="label">
+          <i class="el-icon-date"></i> Minio对象存储
+        </span>
+
+        <el-form
+          style="margin-left: 20px;"
+          label-position="left"
+          :model="form"
+          label-width="120px"
+          :rules="rules"
+          ref="form"
+        >
+
+          <aside>
+            使用 <a href="http://www.moguit.cn/#/info?blogUid=a1058b2d030310e2c5d7b0584e514f1f">Minio</a> 构建本地对象存储服务<br/>
+          </aside>
+
+          <el-form-item label="Minio访问域名" prop="localPictureBaseUrl">
+            <el-input v-model="form.minioPictureBaseUrl" auto-complete="new-password" style="width: 400px"></el-input>
+          </el-form-item>
+
+          <el-form-item label="Minio连接地址" prop="qiNiuPictureBaseUrl">
+            <el-input v-model="form.minioEndPoint" auto-complete="new-password" style="width: 400px"></el-input>
+          </el-form-item>
+
+          <el-form-item label="Minio公钥">
+            <el-input v-model="form.minioAccessKey" auto-complete="new-password" style="width: 400px"></el-input>
+          </el-form-item>
+
+          <el-form-item label="Minio私钥">
+            <el-input type="password" v-model="form.minioSecretKey" auto-complete="new-password" style="width: 400px"></el-input>
+          </el-form-item>
+
+          <el-form-item label="Minio上传空间">
+            <el-input  v-model="form.minioBucket" style="width: 400px"></el-input>
+          </el-form-item>
+
+          <el-form-item label="文件上传Minio">
+            <el-radio v-for="item in yesNoDictList" :key="item.uid" v-model="form.uploadMinio" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="submitForm()" v-permission="'/systemConfig/editSystemConfig'">保 存</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
+
+      <el-tab-pane name="six" v-permission="'/systemConfig/getSystemConfig'">
         <span slot="label"><i class="el-icon-edit"></i> 邮箱配置</span>
         <el-form style="margin-left: 20px;" label-position="left"   label-width="80px" >
+
+          <aside>
+            邮箱配置主要用于配置网站消息的接收<br/>
+            例如：友链申请、网站评论、网站反馈等，可以在系统配置处选择是否开启邮件通知<br/>
+          </aside>
+
           <el-form-item label="邮箱" prop="email">
             <el-input  v-model="form.email" style="width: 400px"></el-input>
           </el-form-item>
@@ -86,18 +206,13 @@
             <el-input  v-model="form.smtpPort" style="width: 400px"></el-input>
           </el-form-item>
 
-          <!--当有新的反馈，友链申请时进行通知，首先需要在系统管理处设置接收通知的邮箱 -->
-          <el-form-item label="邮件通知">
-            <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.startEmailNotification" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
-          </el-form-item>
-
           <el-form-item>
             <el-button type="primary" @click="submitForm()" v-permission="'/systemConfig/editSystemConfig'">保 存</el-button>
           </el-form-item>
         </el-form>
       </el-tab-pane>
 
-      <el-tab-pane name="three" v-permission="'/systemConfig/cleanRedisByKey'">
+      <el-tab-pane name="seven" v-permission="'/systemConfig/cleanRedisByKey'">
         <span slot="label"><i class="el-icon-edit"></i> Redis管理</span>
         <el-form style="margin-left: 20px;" label-position="left"   label-width="120px" >
 
@@ -178,9 +293,18 @@
               </el-col>
             </el-row>
           </el-form-item>
-
-
         </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="仪表盘通知" name="third">
+        <span slot="label"><i class="el-icon-edit"></i> 仪表盘通知</span>
+        <div class="editor-container">
+          <CKEditor ref="editor" v-if="form.editorModel == '0'" :content="form.dashboardNotification" :height="500"></CKEditor>
+          <MarkdownEditor ref="editor" v-if="form.editorModel == '1'" :height="660" style="margin-top: 12px"></MarkdownEditor>
+        </div>
+        <div style="margin-top: 5px; margin-left: 10px;" >
+          <el-button type="primary" @click="submitForm()" v-permission="'/system/editMe'">保 存</el-button>
+        </div>
       </el-tab-pane>
 
     </el-tabs>
@@ -191,17 +315,23 @@
 <script>
 import { getSystemConfig, editSystemConfig, cleanRedisByKey } from "@/api/systemConfig";
 import {getListByDictTypeList} from "@/api/sysDictData"
-import { Loading } from 'element-ui';
+
+import CKEditor from "@/components/CKEditor";
+import MarkdownEditor from "@/components/MarkdownEditor";
+
 export default {
   data() {
     return {
       form: {
 
       },
+      index: "0", // 当前激活页
+      activeName: "one",
       areaDictList: [], //存储区域字典
       yesNoDictList: [], //是否字典
       openDictList: [], // 开启关闭字典
       picturePriorityDictList: [], //图片显示优先级字典
+      editorModalDictList: [], // 文本编辑器字典列表
       loadingInstance: null, // loading对象
       rules: {
         localPictureBaseUrl: [
@@ -220,13 +350,12 @@ export default {
 
   },
   components: {
-
+    CKEditor,
+    MarkdownEditor
   },
   created() {
-    this.loadingInstance = Loading.service({ fullscreen: true, text:'正在努力加载中~' });
     // 获取字典
     this.getDictList()
-
     // 获取系统配置
     this.getSystemConfigList()
   },
@@ -236,24 +365,29 @@ export default {
      */
     getDictList: function () {
 
-      var dictTypeList =  ['sys_yes_no', 'sys_picture_priority', 'sys_storage_region', 'sys_normal_disable']
+      var dictTypeList =  ['sys_yes_no', 'sys_picture_priority', 'sys_storage_region', 'sys_normal_disable', 'sys_editor_modal']
 
       getListByDictTypeList(dictTypeList).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           var dictMap = response.data;
           this.areaDictList = dictMap.sys_storage_region.list
           this.yesNoDictList = dictMap.sys_yes_no.list
           this.openDictList = dictMap.sys_normal_disable.list
           this.picturePriorityDictList = dictMap.sys_picture_priority.list
-          this.loadingInstance.close();
-        } else {
-          this.loadingInstance.close();
+          this.editorModalDictList = dictMap.sys_editor_modal.list
         }
       });
     },
+    handleClick(tab, event) {
+      this.index = tab.index
+      //设置富文本内容
+      if (this.form.dashboardNotification) {
+        this.$refs.editor.setData(this.form.dashboardNotification);
+      }
+    },
     getSystemConfigList: function() {
       getSystemConfig().then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           if (response.data) {
             this.form = response.data;
           }
@@ -261,40 +395,31 @@ export default {
       });
     },
     cleanRedis: function(key) {
-      console.log(key)
       let params = []
       params.push(key)
       cleanRedisByKey(params).then(response => {
-        if(response.code == "success") {
-          this.$message({
-            type: "success",
-            message: response.data
-          })
+        if(response.code == this.$ECode.SUCCESS) {
+          this.$commonUtil.message.success(response.message)
         } else {
-          this.$message({
-            type: "error",
-            message: response.data
-          })
+          this.$commonUtil.message.error(response.message)
         }
       })
     },
     submitForm: function() {
+      console.log("开始提交表单")
       this.$refs.form.validate((valid) => {
         if(!valid) {
           console.log("校验出错");
         } else {
+          //获取文本编辑器中的内容【只有在切换到仪表盘通知的时候，才需要获取】
+          if(this.index == "6") {
+            this.form.dashboardNotification = this.$refs.editor.getData();
+          }
           editSystemConfig(this.form).then(res => {
-            console.log(res);
-            if (res.code = "success") {
-              this.$message({
-                type: "success",
-                message: res.data
-              });
+            if (res.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(res.message)
             } else {
-              this.$message({
-                type: "warning",
-                message: res.data
-              });
+              this.$commonUtil.message.error(res.message)
             }
           });
         }

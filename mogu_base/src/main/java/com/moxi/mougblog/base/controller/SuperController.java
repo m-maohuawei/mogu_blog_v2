@@ -1,5 +1,6 @@
 package com.moxi.mougblog.base.controller;
 
+import com.moxi.mougblog.base.global.Constants;
 import net.sf.json.JSONObject;
 
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.Map;
 /**
  * Controller基类
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @date 2017年9月30日18:12:56
  */
 public class SuperController {
@@ -20,7 +21,7 @@ public class SuperController {
      * @return
      */
     public static Map<String, Object> getMap() {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>(Constants.NUM_ONE);
         return map;
     }
 

@@ -1,6 +1,7 @@
 package com.moxi.mougblog.base.exception;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.moxi.mougblog.base.exception.exceptionType.ApiInvalidParamException;
 import com.moxi.mougblog.base.global.Constants;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * 抛出异常工具类
+ *
  * @author 陌溪
  * @date 2019年12月4日22:47:18
  */
@@ -35,7 +38,6 @@ public class ThrowableUtils {
                         sb.append(error.getField()).append(" ").append(defMsg);
                     } else {
                         sb.append(error.getField()).append(" ").append(defMsg);
-                        // sb.append(error.getField()).append(" ").append(defMsg).append(":").append(rejectedValue);
                     }
                 }
             } else {

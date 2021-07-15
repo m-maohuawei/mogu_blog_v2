@@ -1,12 +1,18 @@
 package com.moxi.mogublog.utils;
+
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
+import com.vladsch.flexmark.ext.emoji.EmojiExtension;
+import com.vladsch.flexmark.ext.emoji.EmojiImageType;
+import com.vladsch.flexmark.ext.emoji.EmojiShortcutType;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -15,14 +21,15 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 
 /**
- * 文件有关的工具类
+ * 文件操作工具类
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2017年10月2日12:16:27
  */
 @Slf4j
@@ -41,11 +48,12 @@ public class FileUtils {
 
     /**
      * 判断是否是图片
+     *
      * @param fileName
      * @return
      */
     public static Boolean isPicture(String fileName) {
-        if(StringUtils.isEmpty(fileName)) {
+        if (StringUtils.isEmpty(fileName)) {
             return false;
         }
         String expandName = getPicExpandedName(fileName);
@@ -54,6 +62,7 @@ public class FileUtils {
 
     /**
      * 判断是否为markdown文件
+     *
      * @param fileName
      * @return
      */
@@ -63,11 +72,34 @@ public class FileUtils {
 
     /**
      * Markdown转Html
+     *
      * @param markdown
      * @return
      */
     public static String markdownToHtml(String markdown) {
-        MutableDataSet options = new MutableDataSet();
+        MutableDataSet options = new MutableDataSet().set(Parser.EXTENSIONS, Arrays.asList(
+                AutolinkExtension.create(),
+                EmojiExtension.create(),
+                StrikethroughExtension.create(),
+                TaskListExtension.create(),
+                TablesExtension.create()
+        ))
+                // set GitHub table parsing options
+                .set(TablesExtension.WITH_CAPTION, false)
+                .set(TablesExtension.COLUMN_SPANS, false)
+                .set(TablesExtension.MIN_HEADER_ROWS, 1)
+                .set(TablesExtension.MAX_HEADER_ROWS, 1)
+                .set(TablesExtension.APPEND_MISSING_COLUMNS, true)
+                .set(TablesExtension.DISCARD_EXTRA_COLUMNS, true)
+                .set(TablesExtension.HEADER_SEPARATOR_COLUMN_MATCH, true)
+
+                // setup emoji shortcut options
+                // uncomment and change to your image directory for emoji images if you have it setup
+                //.set(EmojiExtension.ROOT_IMAGE_PATH, emojiInstallDirectory())
+                .set(EmojiExtension.USE_SHORTCUT_TYPE, EmojiShortcutType.GITHUB)
+                .set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.IMAGE_ONLY)
+                // other options
+                ;
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
         Node document = parser.parse(markdown);
@@ -77,6 +109,7 @@ public class FileUtils {
 
     /**
      * Html 转 Markdown
+     *
      * @param html
      * @return
      */
@@ -102,7 +135,7 @@ public class FileUtils {
             if (contentType.indexOf("image") != -1) {
                 //获得文件后缀名称
                 String imageName = contentType.substring(contentType.indexOf("/") + 1);
-                path = baseUrl + StrUtils.getUUID() + "." + imageName;
+                path = baseUrl + StringUtils.getUUID() + "." + imageName;
                 avatar.transferTo(new File(pathRoot + path));
             }
         }
@@ -131,7 +164,22 @@ public class FileUtils {
     }
 
     /**
+     * 根据OriginalFilename获取FileName【去除文件后缀】
+     * @param originalFilename
+     * @return
+     */
+    public static String getFileName(String originalFilename) {
+        String fileName = "";
+        if (StringUtils.isNotBlank(originalFilename) &&
+                StringUtils.contains(originalFilename, ".")) {
+            fileName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+        }
+        return fileName;
+    }
+
+    /**
      * 从Request中获取文件
+     *
      * @return
      */
     public static List<MultipartFile> getMultipartFileList(HttpServletRequest request) {

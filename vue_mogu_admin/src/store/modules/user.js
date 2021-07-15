@@ -37,13 +37,17 @@ const user = {
     Login({ commit }, userInfo) {
       const username = userInfo.username.trim()
       const password = userInfo.password.trim()
+      const isRememberMe = userInfo.isRememberMe
       return new Promise((resolve, reject) => {
         var params = new URLSearchParams()
         params.append('username', username)
         params.append('password', password)
+        params.append('isRememberMe', isRememberMe)
         login(params).then(response => {
           const data = response.data
+          // 向cookie中设置token
           setToken(data.token)
+          // 向store中设置cookie
           commit('SET_TOKEN', data.token)
           resolve(response)
         }).catch(error => {
@@ -57,7 +61,6 @@ const user = {
       return new Promise((resolve, reject) => {
         getMenu().then(response => {
           const data = response.data
-          console.log("获取的菜单", data)
           // 这里对按钮进行一些处理
           let buttonList = data.buttonList
           let map = new Map();

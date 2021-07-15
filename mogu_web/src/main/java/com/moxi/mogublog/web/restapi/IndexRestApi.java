@@ -1,34 +1,38 @@
 package com.moxi.mogublog.web.restapi;
 
 
+import com.moxi.mogublog.commons.entity.Link;
+import com.moxi.mogublog.commons.entity.Tag;
+import com.moxi.mogublog.utils.JsonUtils;
+import com.moxi.mogublog.utils.RedisUtil;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
+import com.moxi.mogublog.web.annotion.log.BussinessLog;
+import com.moxi.mogublog.web.annotion.requestLimit.RequestLimit;
 import com.moxi.mogublog.web.global.MessageConf;
 import com.moxi.mogublog.web.global.SysConf;
-import com.moxi.mogublog.web.log.BussinessLog;
-import com.moxi.mogublog.web.requestLimit.RequestLimit;
+import com.moxi.mogublog.xo.global.RedisConf;
 import com.moxi.mogublog.xo.service.*;
 import com.moxi.mougblog.base.enums.EBehavior;
+import com.moxi.mougblog.base.global.Constants;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
- * <p>
  * 首页 RestApi
- * </p>
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @since 2018-09-04
  */
 @RestController
@@ -38,28 +42,19 @@ import javax.servlet.http.HttpServletRequest;
 public class IndexRestApi {
 
     @Autowired
-    TagService tagService;
-
+    private TagService tagService;
     @Autowired
-    LinkService linkService;
-
+    private LinkService linkService;
     @Autowired
-    BlogSortService blogSortService;
-
+    private WebConfigService webConfigService;
     @Autowired
-    WebConfigService webConfigService;
-
+    private SysParamsService sysParamsService;
     @Autowired
-    BlogService blogService;
-
-    @Value(value = "${BLOG.HOT_TAG_COUNT}")
-    private Integer BLOG_HOT_TAG_COUNT;
-
-    @Value(value = "${BLOG.FRIENDLY_LINK_COUNT}")
-    private Integer FRIENDLY_LINK_COUNT;
-
-    @Value(value = "${BLOG.NEW_COUNT}")
-    private Long BLOG_NEW_COUNT;
+    private BlogService blogService;
+    @Autowired
+    private WebNavbarService webNavbarService;
+    @Autowired
+    private RedisUtil redisUtil;
 
     @RequestLimit(amount = 200, time = 60000)
     @ApiOperation(value = "通过推荐等级获取博客列表", notes = "通过推荐等级获取博客列表")
@@ -87,7 +82,17 @@ public class IndexRestApi {
                              @ApiParam(name = "pageSize", value = "每页显示数目", required = false) @RequestParam(name = "pageSize", required = false, defaultValue = "10") Long pageSize) {
 
         log.info("获取首页最新的博客");
-        return ResultUtil.result(SysConf.SUCCESS, blogService.getNewBlog(currentPage, BLOG_NEW_COUNT));
+        return ResultUtil.result(SysConf.SUCCESS, blogService.getNewBlog(currentPage, null));
+    }
+
+    @ApiOperation(value = "mogu-search调用获取博客的接口[包含内容]", notes = "mogu-search调用获取博客的接口")
+    @GetMapping("/getBlogBySearch")
+    public String getBlogBySearch(HttpServletRequest request,
+                                  @ApiParam(name = "currentPage", value = "当前页数", required = false) @RequestParam(name = "currentPage", required = false, defaultValue = "1") Long currentPage,
+                                  @ApiParam(name = "pageSize", value = "每页显示数目", required = false) @RequestParam(name = "pageSize", required = false, defaultValue = "10") Long pageSize) {
+
+        log.info("获取首页最新的博客");
+        return ResultUtil.result(SysConf.SUCCESS, blogService.getBlogBySearch(currentPage, null));
     }
 
 
@@ -97,31 +102,48 @@ public class IndexRestApi {
                                 @ApiParam(name = "currentPage", value = "当前页数", required = false) @RequestParam(name = "currentPage", required = false, defaultValue = "1") Long currentPage,
                                 @ApiParam(name = "pageSize", value = "每页显示数目", required = false) @RequestParam(name = "pageSize", required = false, defaultValue = "10") Long pageSize) {
 
-        log.info("按时间戳获取博客");
-        return ResultUtil.result(SysConf.SUCCESS, blogService.getBlogByTime(currentPage, BLOG_NEW_COUNT));
+        String blogNewCount = sysParamsService.getSysParamsValueByKey(SysConf.BLOG_NEW_COUNT);
+        return ResultUtil.result(SysConf.SUCCESS, blogService.getBlogByTime(currentPage, Long.valueOf(blogNewCount)));
     }
 
     @ApiOperation(value = "获取最热标签", notes = "获取最热标签")
     @GetMapping("/getHotTag")
     public String getHotTag() {
-
-        log.info("获取最热标签");
-        return ResultUtil.result(SysConf.SUCCESS, tagService.getHotTag(BLOG_HOT_TAG_COUNT));
+        String hotTagCount = sysParamsService.getSysParamsValueByKey(SysConf.HOT_TAG_COUNT);
+        // 从Redis中获取友情链接
+        String jsonResult = redisUtil.get(RedisConf.BLOG_TAG + Constants.SYMBOL_COLON + hotTagCount);
+        if (StringUtils.isNotEmpty(jsonResult)) {
+            List jsonResult2List = JsonUtils.jsonArrayToArrayList(jsonResult);
+            return ResultUtil.result(SysConf.SUCCESS, jsonResult2List);
+        }
+        List<Tag> tagList = tagService.getHotTag(Integer.valueOf(hotTagCount));
+        if (tagList.size() > 0) {
+            redisUtil.setEx(RedisConf.BLOG_TAG + Constants.SYMBOL_COLON + hotTagCount, JsonUtils.objectToJson(tagList), 1, TimeUnit.HOURS);
+        }
+        return ResultUtil.result(SysConf.SUCCESS, tagList);
     }
 
     @ApiOperation(value = "获取友情链接", notes = "获取友情链接")
     @GetMapping("/getLink")
     public String getLink() {
-
-        log.info("获取友情链接");
-        return ResultUtil.result(SysConf.SUCCESS, linkService.getListByPageSize(FRIENDLY_LINK_COUNT));
+        String friendlyLinkCount = sysParamsService.getSysParamsValueByKey(SysConf.FRIENDLY_LINK_COUNT);
+        // 从Redis中获取友情链接
+        String jsonResult = redisUtil.get(RedisConf.BLOG_LINK + Constants.SYMBOL_COLON + friendlyLinkCount);
+        if (StringUtils.isNotEmpty(jsonResult)) {
+            List jsonResult2List = JsonUtils.jsonArrayToArrayList(jsonResult);
+            return ResultUtil.result(SysConf.SUCCESS, jsonResult2List);
+        }
+        List<Link> linkList = linkService.getListByPageSize(Integer.valueOf(friendlyLinkCount));
+        if (linkList.size() > 0) {
+            redisUtil.setEx(RedisConf.BLOG_LINK + Constants.SYMBOL_COLON + friendlyLinkCount, JsonUtils.objectToJson(linkList), 1, TimeUnit.HOURS);
+        }
+        return ResultUtil.result(SysConf.SUCCESS, linkList);
     }
 
     @BussinessLog(value = "点击友情链接", behavior = EBehavior.FRIENDSHIP_LINK)
     @ApiOperation(value = "增加友情链接点击数", notes = "增加友情链接点击数")
     @GetMapping("/addLinkCount")
     public String addLinkCount(@ApiParam(name = "uid", value = "友情链接UID", required = false) @RequestParam(name = "uid", required = false) String uid) {
-
         log.info("点击友链");
         return linkService.addLinkCount(uid);
     }
@@ -129,9 +151,15 @@ public class IndexRestApi {
     @ApiOperation(value = "获取网站配置", notes = "获取友情链接")
     @GetMapping("/getWebConfig")
     public String getWebConfig() {
-
         log.info("获取网站配置");
         return ResultUtil.result(SysConf.SUCCESS, webConfigService.getWebConfigByShowList());
+    }
+
+    @ApiOperation(value = "获取网站导航栏", notes = "获取网站导航栏")
+    @GetMapping("/getWebNavbar")
+    public String getWebNavbar() {
+        log.info("获取网站导航栏");
+        return ResultUtil.result(SysConf.SUCCESS, webNavbarService.getAllList());
     }
 
     @BussinessLog(value = "记录访问页面", behavior = EBehavior.VISIT_PAGE)

@@ -4,7 +4,6 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.BlogSortService;
 import com.moxi.mogublog.xo.vo.BlogSortVO;
@@ -27,12 +26,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <p>
  * 博客分类表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2018年9月24日15:45:18
+ * @author 陌溪
+ * @date 2018年9月24日15:45:18
  */
 @RestController
 @RequestMapping("/blogSort")
@@ -41,7 +38,7 @@ import java.util.List;
 public class BlogSortRestApi {
 
     @Autowired
-    BlogSortService blogSortService;
+    private BlogSortService blogSortService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取博客分类列表", notes = "获取博客分类列表", response = String.class)
@@ -51,7 +48,7 @@ public class BlogSortRestApi {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         log.info("获取博客分类列表");
-        return ResultUtil.result(SysConf.SUCCESS, blogSortService.getPageList(blogSortVO));
+        return ResultUtil.successWithData(blogSortService.getPageList(blogSortVO));
     }
 
     @AvoidRepeatableCommit
@@ -63,7 +60,7 @@ public class BlogSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
+        log.info("增加博客分类");
         return blogSortService.addBlogSort(blogSortVO);
     }
 
@@ -75,6 +72,7 @@ public class BlogSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("编辑博客分类");
         return blogSortService.editBlogSort(blogSortVO);
     }
 
@@ -86,7 +84,7 @@ public class BlogSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
+        log.info("批量删除博客分类");
         return blogSortService.deleteBatchBlogSort(blogSortVoList);
     }
 
@@ -97,6 +95,7 @@ public class BlogSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("置顶分类");
         return blogSortService.stickBlogSort(blogSortVO);
 
     }
@@ -106,6 +105,7 @@ public class BlogSortRestApi {
     @ApiOperation(value = "通过点击量排序博客分类", notes = "通过点击量排序博客分类", response = String.class)
     @PostMapping("/blogSortByClickCount")
     public String blogSortByClickCount() {
+        log.info("通过点击量排序博客分类");
         return blogSortService.blogSortByClickCount();
     }
 
@@ -120,6 +120,7 @@ public class BlogSortRestApi {
     @ApiOperation(value = "通过引用量排序博客分类", notes = "通过引用量排序博客分类", response = String.class)
     @PostMapping("/blogSortByCite")
     public String blogSortByCite() {
+        log.info("通过引用量排序博客分类");
         return blogSortService.blogSortByCite();
     }
 }

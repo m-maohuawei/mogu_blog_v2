@@ -12,12 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
  * 博客表 服务类
- * </p>
  *
- * @author xuzhixiang
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 public interface BlogService extends SuperService<Blog> {
 
@@ -78,25 +76,16 @@ public interface BlogService extends SuperService<Blog> {
 
     /**
      * 通过状态获取博客数量
-     *
-     * @author xzx19950624@qq.com
-     * @date 2018年10月22日下午3:30:28
      */
     public Integer getBlogCount(Integer status);
 
     /**
      * 通过标签获取博客数目
-     *
-     * @author Administrator
-     * @date 2019年6月19日16:28:16
      */
     public List<Map<String, Object>> getBlogCountByTag();
 
     /**
      * 通过标签获取博客数目
-     *
-     * @author Administrator
-     * @date 2019年11月27日13:14:34
      */
     public List<Map<String, Object>> getBlogCountByBlogSort();
 
@@ -185,8 +174,21 @@ public interface BlogService extends SuperService<Blog> {
     public String uploadLocalBlog(List<MultipartFile> filedatas) throws IOException;
 
     /**
-     *  mogu-web端使用的接口
+     * 删除和博客分类有关的Redis缓存
      */
+    public void deleteRedisByBlogSort();
+
+    /**
+     * 删除和博客标签有关的Redis缓存
+     */
+    public void deleteRedisByBlogTag();
+
+    /**
+     * 删除和博客有关的Redis缓存
+     */
+    public void deleteRedisByBlog();
+
+    //========================mogu-web使用==========================
 
     /**
      * 通过推荐等级获取博客Page
@@ -214,6 +216,15 @@ public interface BlogService extends SuperService<Blog> {
      * @return
      */
     public IPage<Blog> getNewBlog(Long currentPage, Long pageSize);
+
+    /**
+     * mogu-search调用获取博客的接口[包含内容]
+     *
+     * @param currentPage
+     * @param pageSize
+     * @return
+     */
+    public IPage<Blog> getBlogBySearch(Long currentPage, Long pageSize);
 
     /**
      * 按时间戳获取博客

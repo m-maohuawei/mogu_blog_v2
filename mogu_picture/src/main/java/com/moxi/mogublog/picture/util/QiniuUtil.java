@@ -1,11 +1,15 @@
 package com.moxi.mogublog.picture.util;
 
 import com.google.gson.Gson;
+import com.moxi.mogublog.commons.entity.SystemConfig;
+import com.moxi.mogublog.picture.global.MessageConf;
 import com.moxi.mogublog.picture.global.SysConf;
-import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
 import com.moxi.mougblog.base.enums.EOpenStatus;
 import com.moxi.mougblog.base.enums.EQiNiuArea;
+import com.moxi.mougblog.base.exception.exceptionType.QueryException;
+import com.moxi.mougblog.base.global.Constants;
+import com.moxi.mougblog.base.global.ErrorCode;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
@@ -49,7 +53,7 @@ public class QiniuUtil {
     public String uploadQiniu(File localFilePath, Map<String, String> qiNiuConfig) throws QiniuException {
 
         //构造一个带指定Zone对象的配置类
-        Configuration cfg = setQiNiuArea(qiNiuConfig);
+        Configuration cfg = setQiNiuArea(qiNiuConfig.get(SysConf.QI_NIU_AREA));
         //生成上传凭证，然后准备上传
         String accessKey = qiNiuConfig.get(SysConf.QI_NIU_ACCESS_KEY);
         String secretKey = qiNiuConfig.get(SysConf.QI_NIU_SECRET_KEY);
@@ -67,6 +71,32 @@ public class QiniuUtil {
     }
 
     /**
+     * 七牛云上传图片
+     *
+     * @param localFilePath
+     * @return
+     */
+    public String uploadQiniu(File localFilePath, SystemConfig qiNiuConfig) throws QiniuException {
+        //构造一个带指定Zone对象的配置类
+        Configuration cfg = setQiNiuArea(qiNiuConfig.getQiNiuArea());
+        //生成上传凭证，然后准备上传
+        String accessKey = qiNiuConfig.getQiNiuAccessKey();
+        String secretKey = qiNiuConfig.getQiNiuSecretKey();
+        String bucket = qiNiuConfig.getQiNiuBucket();
+        //...其他参数参考类注释
+        UploadManager uploadManager = new UploadManager(cfg);
+        String key = StringUtils.getUUID();
+        Auth auth = Auth.create(accessKey, secretKey);
+        String upToken = auth.uploadToken(bucket);
+        Response response = uploadManager.put(localFilePath, key, upToken);
+        //解析上传成功的结果
+        DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
+        log.info("{七牛图片上传key: " + putRet.key + ",七牛图片上传hash: " + putRet.hash + "}");
+        return putRet.key;
+    }
+
+
+    /**
      * 删除七牛云文件
      *
      * @param fileName
@@ -75,7 +105,7 @@ public class QiniuUtil {
      */
     public int deleteFile(String fileName, Map<String, String> qiNiuConfig) {
         //构造一个带指定Zone对象的配置类
-        Configuration cfg = setQiNiuArea(qiNiuConfig);
+        Configuration cfg = setQiNiuArea(qiNiuConfig.get(SysConf.QI_NIU_AREA));
         //获取上传凭证
         String accessKey = qiNiuConfig.get(SysConf.QI_NIU_ACCESS_KEY);
         String secretKey = qiNiuConfig.get(SysConf.QI_NIU_SECRET_KEY);
@@ -103,7 +133,7 @@ public class QiniuUtil {
      */
     public Boolean deleteFileList(List<String> fileNameList, Map<String, String> qiNiuConfig) {
         //构造一个带指定Zone对象的配置类
-        Configuration cfg = setQiNiuArea(qiNiuConfig);
+        Configuration cfg = setQiNiuArea(qiNiuConfig.get(SysConf.QI_NIU_AREA));
         //获取上传凭证
         String accessKey = qiNiuConfig.get(SysConf.QI_NIU_ACCESS_KEY);
         String secretKey = qiNiuConfig.get(SysConf.QI_NIU_SECRET_KEY);
@@ -128,13 +158,10 @@ public class QiniuUtil {
     /**
      * 设置七牛云上传区域（内部方法）
      *
-     * @param qiNiuConfig
+     * @param area
      * @return
      */
-    private Configuration setQiNiuArea(Map<String, String> qiNiuConfig) {
-        //生成上传凭证，然后准备上传
-        String area = qiNiuConfig.get("qiNiuArea");
-
+    private Configuration setQiNiuArea(String area) {
         //构造一个带指定Zone对象的配置类
         Configuration cfg = null;
 
@@ -143,27 +170,22 @@ public class QiniuUtil {
             case "z0": {
                 cfg = new Configuration(Zone.zone0());
             }
-            ;
             break;
             case "z1": {
                 cfg = new Configuration(Zone.zone1());
             }
-            ;
             break;
             case "z2": {
                 cfg = new Configuration(Zone.zone2());
             }
-            ;
             break;
             case "na0": {
                 cfg = new Configuration(Zone.zoneNa0());
             }
-            ;
             break;
             case "as0": {
                 cfg = new Configuration(Zone.zoneAs0());
             }
-            ;
             break;
             default: {
                 return null;
@@ -173,19 +195,38 @@ public class QiniuUtil {
     }
 
     /**
-     * 获取七牛云配置
+     * 获取七牛云配置【从Redis文件中获取】
      *
      * @return
      */
-    public String getQiNiuConfig() {
-
+    public Map<String, String> getQiNiuConfig() {
         ServletRequestAttributes attribute = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attribute.getRequest();
-        String token = request.getAttribute(SysConf.TOKEN).toString();
-        // 获取七牛云配置文件
-        Map<String, String> qiNiuResultMap = feignUtil.getQiNiuConfig(token);
+        // 后台携带的token
+        Object token = request.getAttribute(SysConf.TOKEN);
+        // 参数中携带的token
+        String paramsToken = request.getParameter(SysConf.TOKEN);
+        // 获取平台【web：门户，admin：管理端】
+        String platform = request.getParameter(SysConf.PLATFORM);
+        Map<String, String> qiNiuResultMap = new HashMap<>();
+        // 判断是否是web端发送过来的请求【后端发送过来的token长度为32】
+        if (SysConf.WEB.equals(platform) || paramsToken.length() == Constants.THIRTY_TWO) {
+            // 如果是调用web端获取配置的接口
+            qiNiuResultMap = feignUtil.getSystemConfigByWebToken(paramsToken);
+        } else {
+            // 调用admin端获取配置接口
+            if (token != null) {
+                // 判断是否是后台过来的请求
+                qiNiuResultMap = feignUtil.getSystemConfigMap(token.toString());
+            } else {
+                // 判断是否是通过params参数传递过来的
+                qiNiuResultMap = feignUtil.getSystemConfigMap(paramsToken);
+            }
+        }
+
         if (qiNiuResultMap == null) {
-            return ResultUtil.result(SysConf.ERROR, "请先配置七牛云");
+            log.error(MessageConf.PLEASE_SET_QI_NIU);
+            throw new QueryException(ErrorCode.PLEASE_SET_QI_NIU, MessageConf.PLEASE_SET_QI_NIU);
         }
 
         String uploadQiNiu = qiNiuResultMap.get(SysConf.UPLOAD_QI_NIU);
@@ -200,11 +241,13 @@ public class QiniuUtil {
 
         if (EOpenStatus.OPEN.equals(uploadQiNiu) && (StringUtils.isEmpty(qiNiuPictureBaseUrl) || StringUtils.isEmpty(qiNiuAccessKey)
                 || StringUtils.isEmpty(qiNiuSecretKey) || StringUtils.isEmpty(qiNiuBucket) || StringUtils.isEmpty(qiNiuArea))) {
-            return ResultUtil.result(SysConf.ERROR, "请先配置七牛云");
+            log.error(MessageConf.PLEASE_SET_QI_NIU);
+            throw new QueryException(ErrorCode.PLEASE_SET_QI_NIU, MessageConf.PLEASE_SET_QI_NIU);
         }
 
         if (EOpenStatus.OPEN.equals(uploadLocal) && StringUtils.isEmpty(localPictureBaseUrl)) {
-            return ResultUtil.result(SysConf.ERROR, "请先配置本地图片域名");
+            log.error(MessageConf.PLEASE_SET_QI_NIU);
+            throw new QueryException(ErrorCode.PLEASE_SET_LOCAL, MessageConf.PLEASE_SET_LOCAL);
         }
 
         // 七牛云配置
@@ -216,7 +259,9 @@ public class QiniuUtil {
         qiNiuConfig.put(SysConf.UPLOAD_QI_NIU, uploadQiNiu);
         qiNiuConfig.put(SysConf.UPLOAD_LOCAL, uploadLocal);
         qiNiuConfig.put(SysConf.PICTURE_PRIORITY, picturePriority);
-        return ResultUtil.result(SysConf.SUCCESS, qiNiuConfig);
+        qiNiuConfig.put(SysConf.LOCAL_PICTURE_BASE_URL, localPictureBaseUrl);
+        qiNiuConfig.put(SysConf.QI_NIU_PICTURE_BASE_URL, qiNiuPictureBaseUrl);
+        return qiNiuConfig;
     }
 
 }

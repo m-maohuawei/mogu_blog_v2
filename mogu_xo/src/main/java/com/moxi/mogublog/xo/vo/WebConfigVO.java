@@ -1,5 +1,6 @@
 package com.moxi.mogublog.xo.vo;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.moxi.mougblog.base.vo.BaseVO;
 import lombok.Data;
@@ -63,9 +64,29 @@ public class WebConfigVO extends BaseVO<WebConfigVO> {
     private String weixinPay;
 
     /**
+     * 友链申请模板
+     */
+    private String linkApplyTemplate;
+
+    /**
      * 是否开启评论(0:否， 1:是)
      */
-    private String startComment;
+    private String openComment;
+
+    /**
+     * 是否开启移动端评论(0:否， 1:是)
+     */
+    private String openMobileComment;
+
+    /**
+     * 是否开启赞赏(0:否， 1:是)
+     */
+    private String openAdmiration;
+
+    /**
+     * 是否开启移动端赞赏(0:否， 1:是)
+     */
+    private String openMobileAdmiration;
 
     /**
      * github地址

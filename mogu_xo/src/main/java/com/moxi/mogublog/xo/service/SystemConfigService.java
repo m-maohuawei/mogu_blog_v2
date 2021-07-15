@@ -7,12 +7,10 @@ import com.moxi.mougblog.base.service.SuperService;
 import java.util.List;
 
 /**
- * <p>
  * 系统配置表 服务类
- * </p>
  *
  * @author 陌溪
- * @since 2020年1月21日09:05:53
+ * @datge 2020年1月21日09:05:53
  */
 public interface SystemConfigService extends SuperService<SystemConfig> {
 
@@ -26,6 +24,7 @@ public interface SystemConfigService extends SuperService<SystemConfig> {
     /**
      * 通过Key前缀清空Redis缓存
      *
+     * @param key
      * @return
      */
     public String cleanRedisByKey(List<String> key);
@@ -33,6 +32,7 @@ public interface SystemConfigService extends SuperService<SystemConfig> {
     /**
      * 修改系统配置
      *
+     * @param systemConfigVO
      * @return
      */
     public String editSystemConfig(SystemConfigVO systemConfigVO);

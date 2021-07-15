@@ -3,24 +3,38 @@
     <div class="box loginBox" v-if="showLogin == true">
       <div class="title"  >
         <span class="t1">
-          登录
+          {{showPasswordLogin == false ? "公众号扫码登录":"登录"}}
         </span>
         <div class="t2" @click="closeLogin()">
           X
         </div>
       </div>
+      <!-- 分割线 -->
       <el-divider></el-divider>
+
       <el-form :label-position="labelPosition" :rules="loginRules" :model="loginForm" ref="loginForm">
-        <el-form-item label="用户名" prop="userName">
-          <el-input v-model="loginForm.userName" placeholder="请输入用户名或邮箱" :disabled="loginType.password"></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="loginForm.password" placeholder="请输入密码" :disabled="loginType.password"></el-input>
-        </el-form-item>
-        <el-row class="btn">
-          <el-button class="loginBtn" type="primary" @click="startLogin" :disabled="loginType.password">登录</el-button>
-          <el-button class="registerBtn" type="info" @click="goRegister" :disabled="loginType.password">注册</el-button>
-        </el-row>
+
+        <div class="passwordLogin" v-if="showPasswordLogin">
+          <el-form-item label="用户名" prop="userName">
+            <el-input v-model="loginForm.userName" placeholder="请输入用户名或邮箱" :disabled="loginType.password"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input type="password" v-model="loginForm.password" placeholder="请输入密码" :disabled="loginType.password"></el-input>
+          </el-form-item>
+          <el-row class="btn">
+            <el-button class="loginBtn" type="primary" @click="startLogin" :disabled="loginType.password">登录</el-button>
+            <el-button class="registerBtn" type="info" @click="goRegister" :disabled="loginType.password">注册</el-button>
+          </el-row>
+        </div>
+
+        <div v-if="showPasswordLogin == false" style="text-align: center" class="block">
+          <el-image :src="wechatOrCode" style="width: 250px;">
+            <div slot="error" class="image-slot" @click="refreshWechatCode">
+              <i class="el-icon-refresh" style="height: 250px; line-height: 250px; cursor: pointer">点击刷新</i>
+            </div>
+          </el-image>
+        </div>
+
 
         <el-row class="elRow">
           <el-tooltip content="码云" placement="bottom">
@@ -56,6 +70,7 @@
           <span v-if="!loginType.wechat"> 微信 </span>
         </div>
       </el-form>
+
     </div>
 
     <div class="box registerBox" v-if="showLogin == false">
@@ -74,19 +89,19 @@
         </el-form-item>
 
         <el-form-item label="昵称" prop="nickName">
-          <el-input v-model="registerForm.nickName" :disabled="loginType.password"></el-input>
+          <el-input v-model="registerForm.nickName" placeholder="昵称长度在1~20之间" :disabled="loginType.password"></el-input>
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="registerForm.password" :disabled="loginType.password"></el-input>
+          <el-input type="password" v-model="registerForm.password" placeholder="密码长度在5~20之间" :disabled="loginType.password"></el-input>
         </el-form-item>
 
         <el-form-item label="重复密码" prop="password2">
-          <el-input type="password" v-model="registerForm.password2" :disabled="loginType.password"></el-input>
+          <el-input type="password" v-model="registerForm.password2" placeholder="请再次输入密码" :disabled="loginType.password"></el-input>
         </el-form-item>
 
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="registerForm.email" :disabled="loginType.password"></el-input>
+          <el-input v-model="registerForm.email" placeholder="请输入正确的邮箱进行注册认证" :disabled="loginType.password"></el-input>
         </el-form-item>
 
         <el-row class="btn">
@@ -104,8 +119,10 @@
 </template>
 
 <script>
-  import {login, localLogin, localRegister} from "@/api/user";
+  import {login, localLogin, localRegister, getWechatOrCodeTicket, getUserLoginStatus} from "@/api/user";
   import { Loading } from 'element-ui';
+  import {setCookie} from "@/utils/cookieUtils";
+  import {mapMutations} from "vuex";
   export default {
     name: "share",
     data() {
@@ -116,12 +133,14 @@
           lock: true
         },
         vueMoguWebUrl: process.env.VUE_MOGU_WEB,
+        showPasswordLogin: true, // 是否显示账号密码登录
+        wechatOrCode: "", // 微信公众号登录二维码
+        ticket: "", // 用户的票券
         // 显示登录页面
         showLogin: true,
         isLogin: false,
         table: false,
         dialog: false,
-        loading: false,
         labelPosition: "right",
         loginForm: {
           userName: "",
@@ -145,6 +164,11 @@
           userName: [
             {required: true, message: '请输入用户名', trigger: 'blur'},
             { min: 5, message: "用户名长度大于等于 5 个字符", trigger: "blur" },
+            { max: 20, message: "用户名长度不能大于 20 个字符", trigger: "blur" }
+          ],
+          nickName: [
+            {required: true, message: '请输入昵称', trigger: 'blur'},
+            { min: 1, message: "用户名长度大于等于 1 个字符", trigger: "blur" },
             { max: 20, message: "用户名长度不能大于 20 个字符", trigger: "blur" }
           ],
           password: [
@@ -184,29 +208,29 @@
       this.setLoginTypeList()
     },
     methods: {
+      ...mapMutations(['setUserInfo', 'setLoginState']),
       setLoginTypeList: function() {
         // 获取登录方式列表
         let webConfigData = this.$store.state.app.webConfigData
         if(webConfigData.loginTypeList != undefined) {
           let loginTypeList = JSON.parse(webConfigData.loginTypeList)
-          console.log(loginTypeList.indexOf("2"))
           for(let a=0; a<loginTypeList.length; a++) {
             switch (loginTypeList[a]) {
               case "1": {
                 this.loginType.password = false
-              };break;
+              } break;
               case "2": {
                 this.loginType.gitee = false
-              };break;
+              } break;
               case "3": {
                 this.loginType.github = false
-              };break;
+              } break;
               case "4": {
                 this.loginType.qq = false
-              };break;
+              } break;
               case "5": {
                 this.loginType.wechat = false
-              };break;
+              } break;
               default: {
                 console.log("登录方式设置有误！！")
               }
@@ -226,7 +250,7 @@
             params.passWord = this.loginForm.password;
             params.isRememberMe = 1;
             localLogin(params).then(response => {
-              if (response.code == "success") {
+              if (response.code == this.$ECode.SUCCESS) {
                 // 跳转到首页
                 location.replace(this.vueMoguWebUrl + "/#/?token=" + response.data)
                 window.location.reload()
@@ -261,7 +285,7 @@
             params.email = this.registerForm.email;
             params.nickName = this.registerForm.nickName
             localRegister(params).then(response => {
-              if (response.code == "success") {
+              if (response.code == this.$ECode.SUCCESS) {
                 this.$message({
                   type: "success",
                   message: response.data
@@ -282,9 +306,67 @@
         this.showLogin = true;
       },
       goRegister: function () {
+        this.registerForm.userName="";
+        this.registerForm.password="";
+        this.registerForm.password2="";
+        this.registerForm.email="";
         this.showLogin = false;
       },
+      userInfoStatus: function () {
+        getUserLoginStatus().then(response => {
+            console.log("获取用户状态", response)
+        });
+      },
+      // 刷新微信二维码
+      refreshWechatCode: function () {
+        let that = this
+        getWechatOrCodeTicket().then(response => {
+          if (response.code == this.$ECode.SUCCESS) {
+            console.log("得到的响应", response)
+            this.showPasswordLogin = false
+            let data = response.data
+            let ticket = data.ticket
+            this.wechatOrCode = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=" + ticket
+            this.ticket = ticket
+            let count = 0
+            let interval = setInterval(() => {
+              count++
+              // 当检查5次未扫码的时候，将二维码失效，重试关闭接口请求
+              if(count > 5) {
+                this.wechatOrCode = ""
+                clearInterval(interval)
+              }
+              let params = new URLSearchParams()
+              params.append("ticket", ticket)
+              getUserLoginStatus(params).then(response => {
+                console.log("获取用户状态", response)
+                if(response.code == that.$ECode.SUCCESS) {
+                  let token = ticket
+                  // 判断url中是否含有token
+                  if (token != undefined) {
+                    // 设置token七天过期
+                    setCookie("token", token, 7)
+                  }
+                  this.setUserInfo(response.data)
+                  this.setLoginState(true);
+                  location.reload();
+                }
+              });
+            }, 3000);
+
+          } else {
+            this.$message.error(response.message)
+          }
+        });
+      },
       goAuth: function (source) {
+
+        // 判断是否点击公众号登录
+        if(source == "wechat") {
+          console.log("点击公众号登录")
+          this.refreshWechatCode()
+          return
+        }
         this.loading = Loading.service({
           lock: true,
           text: '加载中……',
@@ -293,9 +375,8 @@
         var params = new URLSearchParams();
         params.append("source", source);
         login(params).then(response => {
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             var token = response.data.token;
-            console.log(response);
             window.location.href = response.data.url
           }
         });

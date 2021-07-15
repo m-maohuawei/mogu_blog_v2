@@ -6,14 +6,20 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-//@EnableEurekaServer
 @EnableDiscoveryClient
 @EnableRabbit
-@EnableFeignClients("com.moxi.mogublog.sms.feign")
+@EnableFeignClients("com.moxi.mogublog.commons.feign")
+@ComponentScan(basePackages = {
+        "com.moxi.mogublog.utils",
+        "com.moxi.mogublog.commons.config.feign",
+        "com.moxi.mogublog.commons.fallback",
+        "com.moxi.mogublog.sms",
+})
 public class SmsApplication {
 
     public static void main(String[] args) {

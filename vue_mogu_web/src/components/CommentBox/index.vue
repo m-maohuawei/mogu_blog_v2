@@ -1,22 +1,33 @@
 <template>
   <div>
     <div class="commentBox">
-    <span class="left">
-      <img :src="getUserPhoto" onerror="onerror=null;src='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'"/>
+    <span class="left" v-if="isShowAvatar">
+      <img v-if="isShowAvatar" :src="getUserPhoto" onerror="onerror=null;src=defaultAvatar"/>
     </span>
-      <span class="right">
+
+    <span class="right">
       <textarea id="textpanel" class="textArea" placeholder="既然来了，那就留下些什么吧~" v-model="value" @click="hideEmojiPanel" @input="vaildCount"></textarea>
     </span>
+
     </div>
     <div class="bottom">
       <el-button class="submit p2" type="primary"  @click="handleSubmit">发送评论</el-button>
       <el-button class="cancel p2" type="info" @click="handleCancle">取消评论</el-button>
-      <div class="emoji-panel-btn p2" @click="showEmojiPanel">
-        <img src="../../assets/img/face_logo.png" />
-      </div>
-      <span class="allow p2">还能输入{{count}}个字符</span>
 
-      <emoji-panel class="emojiPanel" @emojiClick="appendEmoji" v-if="isShowEmojiPanel"></emoji-panel>
+      <el-popover
+        placement="top"
+        v-model="isShowEmojiPanel">
+        <emoji-panel class="emojiPanel" @emojiClick="appendEmoji"></emoji-panel>
+
+        <div class="emoji-panel-btn p2" @click="showEmojiPanel" slot="reference">
+          <img src="../../assets/img/face_logo.png" />
+        </div>
+
+      </el-popover>
+
+
+
+      <span class="allow p2" v-if="isShowAvatar">还能输入{{count}}个字符</span>
 
     </div>
   </div>
@@ -25,7 +36,7 @@
 
 <script>
   import {dateFormat} from '../../utils/webUtils'
-  import {mapGetters} from 'vuex';
+  import {mapGetters, mapMutations} from 'vuex';
   import EmojiPanel from "@/components/EmojiPanel/EmojiPanel.vue";
   export default {
     name: 'CommentBox',
@@ -51,13 +62,14 @@
     },
     data() {
       return {
-        PICTURE_HOST: process.env.PICTURE_HOST,
         comments: [],
         submitting: false,
         value: '',
         user: {},
         count: 1024,
         isShowEmojiPanel: false, // 是否显示表情面板
+        isShowAvatar: true, // 是否显示头像
+        defaultAvatar: this.$SysConf.defaultAvatar
       }
     },
     computed: {
@@ -66,8 +78,18 @@
     mounted() {
       // 页面加载的时候调用监听
       this.hideEmojiPanel()
+
+      // 获取宽高
+      window.onresize = () => {
+        return (() => {
+          this.resizeWin();
+        })();
+      };
+      this.resizeWin();
     },
     methods: {
+      //拿到vuex中的写的方法
+      ...mapMutations(['setLoginMessage']),
       vaildCount: function() {
         var count = 1024 - this.value.length;
         if(count <= 0) {
@@ -79,14 +101,14 @@
       handleSubmit() {
         let info = this.$store.state.user.userInfo
         let isLogin = this.$store.state.user.isLogin
-        console.log("是否登录", isLogin);
         if(!isLogin) {
-
           this.$notify.error({
             title: '警告',
             message: '登录后才可以评论哦~',
             offset: 100
           });
+          // 未登录，自动弹出登录框
+          this.setLoginMessage(Math.random())
           return;
         }
 
@@ -117,7 +139,6 @@
           blogUid = this.commentInfo.blogUid;
           source = this.commentInfo.source;
         }
-
         this.comments = {
           userUid: userUid,
           toCommentUid: toCommentUid,
@@ -156,16 +177,52 @@
       appendEmoji(text) {
         // const el = document.getElementById("textpanel");
         this.value = this.value + ":" + text + ":";
-      }
+      },
+      resizeWin() {
+        //当前window 宽
+        let centerWidth = document.documentElement.scrollWidth;
+        if (centerWidth > 800) {
+          this.isShowAvatar = true
+        } else {
+          // 是否显示头像框
+          this.isShowAvatar = false
+        }
+      },
     },
   };
 </script>
 
 
-<style >
+<style>
   @import "../../assets/css/emoji.css";
+
+  .el-popover {
+    height: 135px;
+    width: 420px;
+  }
+
+  .emoji-panel-wrap {
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    background-color: #ffffff;
+    width: 423px;
+    height: 145px;
+    position: absolute;
+    z-index: 99;
+    top: 10px;
+  }
+  .emoji-size-small {
+    zoom: 0.3;
+    margin: 5px;
+    vertical-align: middle;
+  }
+  .emoji-size-large {
+    zoom: 0.5; // emojipanel表情大小
+    margin: 5px;
+  }
   .commentBox {
-    min-width: 700px;
+    /*min-width: 700px;*/
     width: 100%;
     height: 100px;
     margin: 0 auto;
@@ -200,7 +257,6 @@
   }
   .bottom {
     position: relative;
-    min-width: 690px;
     width: 98%;
     height: 60px;
     line-height: 40px;
@@ -230,8 +286,33 @@
     // 表情大小
     zoom: 0.3;
   }
-  .emoji-size-large {
-    zoom: 0.5; // emojipanel表情大小
-    margin: 4px;
+
+  @media only screen and (min-width: 300px) and (max-width: 767px) {
+    .commentBox .right {
+      display: inline-block;
+      margin: 5px 2px 0 0;
+      width: 99%;
+      height: 100%;
+    }
+
+    .emoji-panel-wrap {
+      box-sizing: border-box;
+      border: 1px solid #cccccc;
+      border-radius: 5px;
+      background-color: #ffffff;
+      width: 300px;
+      height: 220px;
+      position: absolute;
+      z-index: 99;
+      top: 10px;
+    }
+
+    .el-popover {
+      height: 220px;
+      width: 300px;
+    }
+
+
   }
+
 </style>

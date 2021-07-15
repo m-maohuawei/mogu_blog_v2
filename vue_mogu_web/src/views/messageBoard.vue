@@ -1,25 +1,25 @@
-
 <template>
-  <div class="page">
-    <div class="pagebg ab"></div>
+  <div>
+    <div class="pagebg sorts"></div>
     <div class="container">
       <h1 class="t_nav">
         <span>每个人都有自己故事，只是演绎的方式不同。</span>
         <a href="/" class="n1">网站首页</a>
-        <a href="/" class="n2">留言</a>
+        <a href="javascript:void(0);" class="n2">留言</a>
       </h1>
 
-        <CommentBox
-          :userInfo="userInfo"
-          :commentInfo="commentInfo"
-          @submit-box="submitBox"
-          :showCancel="showCancel"
-        ></CommentBox>
+      <CommentBox
+        :userInfo="userInfo"
+        :commentInfo="commentInfo"
+        @submit-box="submitBox"
+        :showCancel="showCancel"
+      ></CommentBox>
 
       <div class="message_infos">
         <CommentList :comments="comments" :commentInfo="commentInfo"></CommentList>
         <div class="noComment" v-if="comments.length ==0">还没有评论，快来抢沙发吧！</div>
       </div>
+
     </div>
   </div>
 </template>
@@ -80,7 +80,7 @@
               params.currentPage = that.currentPage + 1
               params.pageSize = that.pageSize;
               getCommentList(params).then(response => {
-                if (response.code == "success") {
+                if (response.code == that.$ECode.SUCCESS) {
                   that.comments = that.comments.concat(response.data.records);
                   that.setCommentList(this.comments);
                   that.currentPage = response.data.current;
@@ -105,7 +105,7 @@
                 params.content = e.content;
                 params.blogUid = e.blogUid;
                 addComment(params).then(response => {
-                    if (response.code == "success") {
+                    if (response.code == this.$ECode.SUCCESS) {
                         this.$notify({
                             title: "成功",
                             message: "发表成功~",
@@ -128,7 +128,7 @@
                 params.currentPage = this.currentPage;
                 params.pageSize = this.pageSize;
                 getCommentList(params).then(response => {
-                    if (response.code == "success") {
+                    if (response.code == this.$ECode.SUCCESS) {
                         this.comments = response.data.records;
                         this.setCommentList(this.comments);
                         this.currentPage = response.data.current;
@@ -140,27 +140,7 @@
         }
     };
 </script>
-<style>
-  .emoji-panel-wrap {
-    box-sizing: border-box;
-    border: 1px solid #cccccc;
-    border-radius: 5px;
-    background-color: #ffffff;
-    width: 650px;
-    height: 135px;
-    position: absolute;
-    z-index: 999;
-    left: 50px;
-    top: 10px;
-  }
-  .emoji-size-small {
-    zoom: 0.3;
-    margin: 5px;
-  }
-  .emoji-size-large {
-    zoom: 0.5; // emojipanel表情大小
-    margin: 5px;
-  }
+<style scoped>
   .message_infos {
     width: 100%;
     min-height: 500px;

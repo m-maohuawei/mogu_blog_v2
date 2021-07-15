@@ -3,20 +3,20 @@
     <!-- 操作按钮 -->
     <el-header class="file-list-header">
       <OperationMenu
-        :operationFile="operationFile"
-        :selectionFile="selectionFile"
-        :filepath="filepath"
-        :storageValue="storageValue"
+        :operation-file="operationFile"
+        :selection-file="selectionFile"
+        :filepath="filePath"
+        :storage-value="storageValue"
         @showStorage="showStorage"
         @getTableDataByType="getTableDataByType"
         @setMoveFileDialogData="setMoveFileDialogData"
-      ></OperationMenu>
+      />
     </el-header>
     <div class="middle-wrapper">
       <!-- 面包屑导航栏 -->
-      <BreadCrumb class="breadcrumb"></BreadCrumb>
+      <BreadCrumb class="breadcrumb"/>
       <!-- 图片展示模式 -->
-      <div class="change-image-model" v-show="filetype === 1">
+      <div v-show="fileType === 1" class="change-image-model">
         <el-radio-group v-model="imageGroupLable" size="mini" @change="changeImageDisplayModel">
           <el-radio-button :label="0">列表</el-radio-button>
           <el-radio-button :label="1">网格</el-radio-button>
@@ -26,32 +26,34 @@
     </div>
     <!-- 文件列表表格 -->
     <FileTable
-      :fileList="fileList"
+      v-show="!imageModel || fileType !== 1"
+      :file-list="fileList"
       :loading="loading"
-      v-show="!imageModel || filetype !== 1"
       @setMoveFileDialogData="setMoveFileDialogData"
       @setOperationFile="setOperationFile"
       @setSelectionFile="setSelectionFile"
       @showStorage="showStorage"
       @getTableDataByType="getTableDataByType"
       @getImgReviewData="getImgReviewData"
-    ></FileTable>
+    />
+
     <!-- 图片网格模式 -->
     <ImageModel
+      v-if="imageModel && fileType === 1"
+      :file-list="fileList"
       class="image-model"
-      v-if="imageModel && filetype === 1"
-      :fileList="fileList"
       @getImgReviewData="getImgReviewData"
-    ></ImageModel>
+    />
+
     <!-- 移动文件模态框 -->
     <MoveFileDialog
-      :dialogMoveFile="dialogMoveFile"
+      :dialog-move-file="dialogMoveFile"
       @setSelectFilePath="setSelectFilePath"
       @confirmMoveFile="confirmMoveFile"
       @setMoveFileDialogData="setMoveFileDialogData"
-    ></MoveFileDialog>
+    />
     <!-- 查看大图 -->
-    <ImgReview :imgReview="imgReview" @getImgReviewData="getImgReviewData"></ImgReview>
+    <ImgReview :img-review="imgReview" @getImgReviewData="getImgReviewData"/>
   </div>
 </template>
 
@@ -63,10 +65,9 @@ import ImageModel from './components/ImageModel'
 import MoveFileDialog from './components/MoveFileDialog'
 import ImgReview from './components/ImgReview'
 import {
-  getfilelist,
-  selectFileByFileType,
+  getFileList,
   getFileTree,
-  getstorage,
+  getStorage,
   moveFile,
   batchMoveFile
 } from '@/api/file.js'
@@ -83,7 +84,7 @@ export default {
   },
   data() {
     return {
-      storageValue: "0",
+      storageValue: '0',
       fileNameSearch: '',
       loading: true, //  表格数据-loading
       fileList: [], //  表格数据-文件列表
@@ -94,82 +95,10 @@ export default {
         fileTree: [] //  目录树
       },
       selectFilePath: '', //  移动文件路径
-      filepath: '/', // 默认路径
+      filePath: '/', // 默认路径
       operationFile: {}, // 当前操作行
       selectionFile: [], // 勾选的文件
-      filetype: 0, //  文件类型
-      //  可以识别的文件类型
-      fileImgTypeList: [
-        'png',
-        'jpg',
-        'jpeg',
-        'docx',
-        'doc',
-        'ppt',
-        'pptx',
-        'xls',
-        'xlsx',
-        'avi',
-        'mp4',
-        'css',
-        'csv',
-        'chm',
-        'rar',
-        'zip',
-        'dmg',
-        'mp3',
-        'open',
-        'pdf',
-        'rtf',
-        'txt',
-        'oa',
-        'js',
-        'html',
-        'img',
-        'sql',
-        'jar',
-        'svg',
-        'gif',
-        'json',
-        'exe'
-      ],
-      //  文件图片Map映射
-      fileImgMap: {
-        dir: require('@/assets/images/file/dir.png'),
-        chm: require('@/assets/images/file/file_chm.png'),
-        css: require('@/assets/images/file/file_css.png'),
-        csv: require('@/assets/images/file/file_csv.png'),
-        png: require('@/assets/images/file/file_pic.png'),
-        jpg: require('@/assets/images/file/file_pic.png'),
-        jpeg: require('@/assets/images/file/file_pic.png'),
-        docx: require('@/assets/images/file/file_word.png'),
-        doc: require('@/assets/images/file/file_word.png'),
-        ppt: require('@/assets/images/file/file_ppt.png'),
-        pptx: require('@/assets/images/file/file_ppt.png'),
-        xls: require('@/assets/images/file/file_excel.png'),
-        xlsx: require('@/assets/images/file/file_excel.png'),
-        mp4: require('@/assets/images/file/file_video.png'),
-        avi: require('@/assets/images/file/file_avi.png'),
-        rar: require('@/assets/images/file/file_rar.png'),
-        zip: require('@/assets/images/file/file_zip.png'),
-        dmg: require('@/assets/images/file/file_dmg.png'),
-        mp3: require('@/assets/images/file/file_music.png'),
-        open: require('@/assets/images/file/file_open.png'),
-        pdf: require('@/assets/images/file/file_pdf.png'),
-        rtf: require('@/assets/images/file/file_rtf.png'),
-        txt: require('@/assets/images/file/file_txt.png'),
-        oa: require('@/assets/images/file/file_oa.png'),
-        unknown: require('@/assets/images/file/file_unknown.png'),
-        js: require('@/assets/images/file/file_js.png'),
-        html: require('@/assets/images/file/file_html.png'),
-        img: require('@/assets/images/file/file_img.png'),
-        sql: require('@/assets/images/file/file_sql.png'),
-        jar: require('@/assets/images/file/file_jar.png'),
-        svg: require('@/assets/images/file/file_svg.png'),
-        gif: require('@/assets/images/file/file_gif.png'),
-        json: require('@/assets/images/file/file_json.png'),
-        exe: require('@/assets/images/file/file_exe.png')
-      },
+      fileType: 0, //  文件类型
       //  查看图片模态框数据
       imgReview: {
         visible: false,
@@ -180,14 +109,14 @@ export default {
       imageGroupLable: 0
     }
   },
-  watch:{
-    $route(to,from){
-      this.getTableDataByType()
-    }
-  },
   computed: {
     imageModel() {
       return this.$store.getters.imageModel
+    }
+  },
+  watch: {
+    $route(to, from) {
+      this.getTableDataByType()
     }
   },
   created() {
@@ -202,72 +131,40 @@ export default {
      * 表格数据获取相关事件
      */
     getTableDataByType() {
-      if (this.filetype) {
-        //  分类型
-        this.showFileListByType()
+      // 判断fileType
+      if (this.$route.query.filetype) {
+        this.fileType = parseInt(this.$route.query.filetype)
       } else {
-        //  全部文件
-        this.showFileList()
+        this.fileType = 0
       }
-    },
-    //  获取当前路径下的文件列表
-    showFileList() {
-      let data = {}
-      if(this.$route.query.filepath) {
-        data.filePath = this.$route.query.filepath
+      if (this.$route.query.filepath) {
+        this.filePath = this.$route.query.filepath
       } else {
-        data.filePath = "/"
-      }
-      if(this.$route.query.filetype) {
-        data.fileType = this.$route.query.filetype
-      } else {
-        data.fileType = 0
+        this.filePath = '/'
       }
 
-      getfilelist(data).then(res => {
-        if (res.success) {
-          this.fileList = res.data
-          this.loading = false
-        } else {
-          this.$message.error(res.errorMessage)
-        }
-      })
+      this.showFileListByType()
     },
-    //  根据文件类型展示文件列表
+    /**
+     * 根据文件类型展示文件列表
+     */
     showFileListByType() {
-      //  分类型
-      let data = {
-        fileType: this.fileType
-      }
-      if(this.$route.query.filepath) {
-        data.filePath = this.$route.query.filepath
-      } else {
-        data.filePath = "/"
-      }
-
-      getfilelist(data).then(res => {
-        if (res.success) {
+      const data = {}
+      data.filePath = this.filePath
+      data.fileType = this.fileType
+      this.fileList = []
+      getFileList(data).then(res => {
+        if (res.code == this.$ECode.SUCCESS) {
           this.fileList = res.data
           this.loading = false
         } else {
-          this.$message.error(res.errorMessage)
+          this.$message.error(res.message)
         }
       })
     },
-    //  根据文件扩展名设置文件图片
-    setFileImg(extendname) {
-      if (extendname === null) {
-        //  文件夹
-        return this.fileImgMap.dir
-      } else if (!this.fileImgTypeList.includes(extendname)) {
-        //  无法识别文件类型的文件
-        return this.fileImgMap.unknown
-      } else {
-        //  可以识别文件类型的文件
-        return this.fileImgMap[extendname]
-      }
-    },
-    //  计算文件大小
+    /**
+     * 计算文件大小
+     * */
     calculateFileSize(size) {
       const B = 1024
       const KB = Math.pow(1024, 2)
@@ -289,7 +186,6 @@ export default {
     /**
      * 表格勾选框事件
      */
-    //  勾选的行
     setSelectionFile(selection) {
       this.selectionFile = selection
     },
@@ -297,22 +193,19 @@ export default {
     /**
      * 移动按钮相关事件
      */
-    //  当前操作行
     setOperationFile(operationFile) {
       this.operationFile = operationFile
     },
     //  设置移动文件模态框相关数据，isBatchMove为null时是确认移动，值由之前的值而定
     setMoveFileDialogData(isBatchMove, visible) {
       this.initFileTree()
-      this.dialogMoveFile.isBatchMove = isBatchMove
-        ? isBatchMove
-        : this.dialogMoveFile.isBatchMove
+      this.dialogMoveFile.isBatchMove = isBatchMove || this.dialogMoveFile.isBatchMove
       this.dialogMoveFile.visible = visible
     },
     //  移动文件模态框：初始化文件目录树
     initFileTree() {
       getFileTree().then(res => {
-        if (res.success) {
+        if (res.code == this.$ECode.SUCCESS) {
           this.dialogMoveFile.fileTree = [res.data]
         } else {
           this.$message.error(res.errorMessage)
@@ -327,45 +220,45 @@ export default {
     confirmMoveFile() {
       if (this.dialogMoveFile.isBatchMove) {
         //  批量移动
-        let data = {
-          newfilepath: this.selectFilePath,
+        const data = {
+          newFilePath: this.selectFilePath,
           files: JSON.stringify(this.selectionFile)
         }
         batchMoveFile(data).then(res => {
-          if (res.success) {
-            this.$message.success(res.data)
+          if (res.code == this.$ECode.SUCCESS) {
+            this.$commonUtil.message.success(res.message)
             this.getTableDataByType()
             this.dialogMoveFile.visible = false
             this.selectionFile = []
           } else {
-            this.$message.error(res.errorMessage)
+            this.$commonUtil.message.error(res.message)
           }
         })
       } else {
         //  单文件移动
-        let data = {
-          oldfilepath: this.operationFile.filepath,
-          newfilepath: this.selectFilePath,
-          filename: this.operationFile.filename,
-          extendname: this.operationFile.extendname
+        const data = {
+          oldFilePath: this.operationFile.filePath,
+          newFilePath: this.selectFilePath,
+          fileName: this.operationFile.fileName,
+          fileOldName: this.operationFile.fileOldName,
+          extendName: this.operationFile.extendName
         }
         moveFile(data).then(res => {
-          if (res.success) {
-            this.$message.success('移动文件成功')
+          if (res.code == this.$ECode.SUCCESS) {
+            this.$commonUtil.message.success(res.message)
             this.getTableDataByType()
             this.dialogMoveFile.visible = false
           } else {
-            this.$message.error(res.errorMessage)
+            this.$commonUtil.message.error(res.message)
           }
         })
       }
     },
-
     //  获取已占用内存
     showStorage() {
-      getstorage().then(res => {
-        if (res.success) {
-          let size = res.data ? res.data.storagesize : 0
+      getStorage().then(res => {
+        if (res.code == this.$ECode.SUCCESS) {
+          const size = res.data ? res.data.storageSize : 0
           const B = 1024
           const KB = Math.pow(1024, 2)
           const MB = Math.pow(1024, 3)
@@ -382,7 +275,7 @@ export default {
             this.storageValue = (size / GB).toFixed(4) + 'TB'
           }
         } else {
-          this.$message.error(res.errorMessage)
+          this.$commonUtil.message.error(res.message)
         }
       })
     },
@@ -394,8 +287,7 @@ export default {
 
     //  获取查看大图的数据
     getImgReviewData(row, visible) {
-      if(row) {
-        console.log("查看大图", row.fileUrl)
+      if (row) {
         this.imgReview.fileurl = row.fileUrl
         this.imgReview.filename = row.fileName
         this.imgReview.extendname = row.extendName
@@ -413,10 +305,13 @@ export default {
     .el-dialog-div
       height 200px
       overflow auto
+
   .middle-wrapper
     display flex
+
     .breadcrumb
       flex 1
+
     .change-image-model
       margin-right 20px
       height 30px

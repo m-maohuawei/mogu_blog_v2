@@ -16,11 +16,18 @@ import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ElasticSearch实现类
+ *
+ * @author 陌溪
+ * @date 2020/9/15 15:19
+ */
 @Slf4j
 @Service
 public class ElasticSearchService {
@@ -29,7 +36,7 @@ public class ElasticSearchService {
     @Autowired
     ElasticsearchTemplate elasticsearchTemplate;
 
-    @Autowired
+    @Resource
     HighlightResultHelper highlightResultHelper;
 
     @Autowired
@@ -37,16 +44,15 @@ public class ElasticSearchService {
 
     public ESBlogIndex buidBlog(Blog eblog) {
 
-        //搜索字段
-        String all = eblog.getTitle() + " " + eblog.getSummary();
-
         //构建blog对象
         ESBlogIndex blog = new ESBlogIndex();
         blog.setId(eblog.getUid());
+        blog.setOid(eblog.getOid());
         blog.setUid(eblog.getUid());
         blog.setTitle(eblog.getTitle());
+        blog.setType(eblog.getType());
         blog.setSummary(eblog.getSummary());
-        blog.setAll(all);
+        blog.setContent(eblog.getContent());
 
         if (eblog.getBlogSort() != null) {
             blog.setBlogSortName(eblog.getBlogSort().getSortName());
@@ -75,7 +81,6 @@ public class ElasticSearchService {
         } else {
             blog.setPhotoUrl("");
         }
-
         return blog;
     }
 
@@ -89,15 +94,18 @@ public class ElasticSearchService {
         highlightFields.add(titleField);
         highlightFields.add(summaryField);
 
-        HighlightBuilder.Field[] highlightFieldsAry = highlightFields.toArray(new HighlightBuilder.Field[highlightFields.size()]);
+        HighlightBuilder.Field[] highlightFieldsAry = highlightFields.toArray(new HighlightBuilder
+                .Field[highlightFields.size()]);
         //创建查询构造器
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+
 
         queryBuilder.withPageable(PageRequest.of(currentPage, pageSize));
 
         //过滤
         QueryStringQueryBuilder queryStrBuilder = new QueryStringQueryBuilder(keywords);
-        queryStrBuilder.field("title").field("summary");
+        queryStrBuilder.field("title", 0.75F).field("summary", 0.75F).field("content", 0.1F);
+
 
         queryBuilder.withQuery(queryStrBuilder);
 
@@ -106,7 +114,8 @@ public class ElasticSearchService {
         log.error("查询语句：{}", queryBuilder.build().getQuery().toString());
 
         //查询
-        AggregatedPage<ESBlogIndex> result = elasticsearchTemplate.queryForPage(queryBuilder.build(), ESBlogIndex.class, highlightResultHelper);
+        AggregatedPage<ESBlogIndex> result = elasticsearchTemplate.queryForPage(queryBuilder.build(), ESBlogIndex
+                .class, highlightResultHelper);
 
         //解析结果
         long total = result.getTotalElements();

@@ -19,7 +19,7 @@
 
 	   	<el-table-column label="标题图" width="160" align="center">
 	      <template slot-scope="scope">
-	      	<img  v-if="scope.row.photoList" :src="BASE_IMAGE_URL + scope.row.photoList[0]" style="width: 130px;height: 70px;"/>
+	      	<img  v-if="scope.row.photoList" :src="scope.row.photoList[0]" style="width: 130px;height: 70px;"/>
 	      </template>
 	    </el-table-column>
 
@@ -88,7 +88,7 @@
 				<el-form-item label="图片" :label-width="formLabelWidth">
 	    		<div class="imgBody" v-if="form.photoList">
 	    		  	<i class="el-icon-error inputClass" v-show="icon" @click="deletePhoto()" @mouseover="icon = true"></i>
-	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" style="display:inline; width: 195px;height: 105px;"/>
+	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="form.photoList[0]" style="display:inline; width: 195px;height: 105px;"/>
 	    		</div>
 	    		<div v-else class="uploadImgBody" @click="checkPhoto">
  		 			<i class="el-icon-plus avatar-uploader-icon"></i>
@@ -131,10 +131,7 @@ import {
   deleteBatchResourceSort,
   stickResourceSort
 } from "@/api/resourceSort";
-
-import { formatData } from "@/utils/webUtils";
 import CheckPhoto from "../../components/CheckPhoto";
-import { Loading } from "element-ui";
 
 export default {
   components: {
@@ -145,7 +142,6 @@ export default {
   },
   data() {
     return {
-      BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
       multipleSelection: [], //多选，用于批量删除
       tableData: [],
       form: {
@@ -181,7 +177,6 @@ export default {
   },
   methods: {
     resourceSortList: function() {
-
       var params = {};
       params.keyword = this.keyword;
       params.currentPage = this.currentPage;
@@ -195,7 +190,7 @@ export default {
       });
     },
     handleFind: function() {
-      console.log(this.keyword);
+      this.currentPage = 1
       this.resourceSortList();
     },
     getFormObject: function() {
@@ -233,9 +228,6 @@ export default {
       this.form.photoList = null;
       this.form.fileUid = "";
     },
-    checkPhoto() {
-      this.photoVisible = true;
-    },
     //改变页码
     handleCurrentChange(val) {
       var that = this;
@@ -267,25 +259,16 @@ export default {
           var params = {};
           params.uid = row.uid;
           stickResourceSort(params).then(response => {
-            if (response.code == "success") {
+            if (response.code == this.$ECode.SUCCESS) {
               this.resourceSortList();
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消置顶"
-          });
+          this.$commonUtil.message.info("已取消置顶")
         });
     },
     handleDelete: function(row) {
@@ -298,35 +281,23 @@ export default {
           var params = [];
           params.push(row);
           deleteBatchResourceSort(params).then(response => {
-            if (response.code == "success") {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+            if (response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
             this.resourceSortList();
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          this.$commonUtil.message.info("已取消删除")
         });
     },
     handleDeleteBatch: function() {
       var that = this;
       var that = this;
       if(that.multipleSelection.length <= 0 ) {
-        this.$message({
-          type: "error",
-          message: "请先选中需要删除的内容！"
-        });
+        this.$commonUtil.message.error("请先选中需要删除的内容")
         return;
       }
       this.$confirm("此操作将把选中的分类删除, 是否继续?", "提示", {
@@ -336,25 +307,16 @@ export default {
       })
         .then(() => {
           deleteBatchResourceSort(that.multipleSelection).then(response => {
-            if (response.code == "success") {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+            if (response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
             that.resourceSortList();
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          this.$commonUtil.message.info("已取消删除")
         });
     },
     submitForm: function() {
@@ -364,28 +326,17 @@ export default {
         } else {
           if (this.isEditForm) {
             editResourceSort(this.form).then(response => {
-              console.log(response);
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
               this.dialogFormVisible = false;
               this.resourceSortList();
             });
           } else {
             addResourceSort(this.form).then(response => {
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
               } else {
-                this.$message({
-                  type: "error",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
-
               this.dialogFormVisible = false;
               this.resourceSortList();
             });
@@ -401,7 +352,7 @@ export default {
   }
 };
 </script>
-<style>
+<style scoped>
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;

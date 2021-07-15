@@ -8,7 +8,7 @@
       auto-complete="on"
       label-position="left"
     >
-      <h3 class="title">蘑菇博客后台管理系统</h3>
+      <h3 class="title">{{webSiteName}}后台管理系统</h3>
       <el-form-item prop="username">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user"/>
@@ -39,6 +39,9 @@
           <svg-icon icon-class="eye"/>
         </span>
       </el-form-item>
+
+      <el-checkbox v-model="loginForm.isRememberMe" style="margin:0px 0px 25px 0px;"><span style="color: #eee">七天免登录</span></el-checkbox>
+
       <el-form-item>
         <el-button
           :loading="loading"
@@ -74,7 +77,7 @@
 
 <script>
 import { isvalidUsername } from "@/utils/validate";
-
+import {getWebSiteName} from '@/api/login'
 export default {
   name: "Login",
   data() {
@@ -96,8 +99,10 @@ export default {
     return {
       loginForm: {
         username: "",
-        password: ""
+        password: "",
+        isRememberMe: false,
       },
+      webSiteName: "",
       loginRules: {
         username: [
           { required: true, trigger: "blur", validator: validateUsername }
@@ -119,14 +124,21 @@ export default {
   },
   mounted() {
     // mounted钩子函数，dom已经渲染完毕，可以直接获取到dom对象进行聚焦
-
     this.$refs.userNameInput.focus()
   },
   created() {
     // created，dom还未开始渲染，因此需要使用this.$nextTick 将其放置在下一个dom渲染操作时执行
     // this.$refs.userNameInput.focus()
+    this.getWebName()
   },
   methods: {
+    getWebName: function () {
+      getWebSiteName().then(response => {
+        if(response.code == this.$ECode.SUCCESS) {
+          this.webSiteName = response.data
+        }
+      });
+    },
     inputFocus: function() {
       this.$nextTick(x => {
         this.$refs.userNameInput.focus()
@@ -146,7 +158,7 @@ export default {
           this.$store
             .dispatch("Login", this.loginForm)
             .then(response => {
-              if (response.code == "success") {
+              if (response.code == this.$ECode.SUCCESS) {
                 this.$router.push({ path: this.redirect || "/" });
               } else {
                 this.$message.error(response.data);

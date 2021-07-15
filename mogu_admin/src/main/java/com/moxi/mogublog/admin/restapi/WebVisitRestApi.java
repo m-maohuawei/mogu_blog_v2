@@ -4,7 +4,7 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
-import com.moxi.mogublog.xo.service.*;
+import com.moxi.mogublog.xo.service.WebVisitService;
 import com.moxi.mogublog.xo.vo.WebVisitVO;
 import com.moxi.mougblog.base.exception.ThrowableUtils;
 import com.moxi.mougblog.base.validator.group.GetList;
@@ -20,12 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p>
  * 用户访问表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2019年5月17日08:38:09
+ * @author 陌溪
+ * @date 2019年5月17日08:38:09
  */
 @Api(value = "用户访问相关接口", tags = {"用户访问相关接口"})
 @RestController
@@ -34,19 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebVisitRestApi {
 
     @Autowired
-    WebVisitService webVisitService;
-
-    @Autowired
-    TagService tagService;
-
-    @Autowired
-    BlogSortService blogSortService;
-
-    @Autowired
-    BlogService blogService;
-
-    @Autowired
-    LinkService linkService;
+    private WebVisitService webVisitService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取用户访问列表", notes = "获取用户访问列表")

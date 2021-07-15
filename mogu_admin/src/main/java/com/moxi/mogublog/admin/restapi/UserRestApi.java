@@ -3,13 +3,13 @@ package com.moxi.mogublog.admin.restapi;
 
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.UserService;
 import com.moxi.mogublog.xo.vo.UserVO;
 import com.moxi.mougblog.base.exception.ThrowableUtils;
 import com.moxi.mougblog.base.validator.group.Delete;
 import com.moxi.mougblog.base.validator.group.GetList;
+import com.moxi.mougblog.base.validator.group.Insert;
 import com.moxi.mougblog.base.validator.group.Update;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -23,12 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p>
  * 用户表 RestApi
- * </p>
  *
  * @author 陌溪
- * @since 2020年1月4日21:29:09
+ * @date 2020年1月4日21:29:09
  */
 @RestController
 @Api(value = "用户相关接口", tags = {"用户相关接口"})
@@ -37,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserRestApi {
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取用户列表", notes = "获取用户列表", response = String.class)
@@ -46,8 +44,20 @@ public class UserRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-        log.info("获取用户列表");
-        return ResultUtil.result(SysConf.SUCCESS, userService.getPageList(userVO));
+        log.info("获取用户列表: {}", userVO);
+        return ResultUtil.successWithData(userService.getPageList(userVO));
+    }
+
+    @AuthorityVerify
+    @OperationLogger(value = "新增用户")
+    @ApiOperation(value = "新增用户", notes = "新增用户", response = String.class)
+    @PostMapping("/add")
+    public String add(@Validated({Insert.class}) @RequestBody UserVO userVO, BindingResult result) {
+
+        // 参数校验
+        ThrowableUtils.checkParamArgument(result);
+        log.info("新增用户: {}", userVO);
+        return userService.addUser(userVO);
     }
 
     @AuthorityVerify
@@ -55,9 +65,9 @@ public class UserRestApi {
     @ApiOperation(value = "编辑用户", notes = "编辑用户", response = String.class)
     @PostMapping("/edit")
     public String edit(@Validated({Update.class}) @RequestBody UserVO userVO, BindingResult result) {
-
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("编辑用户: {}", userVO);
         return userService.editUser(userVO);
     }
 
@@ -69,6 +79,7 @@ public class UserRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("删除用户: {}", userVO);
         return userService.deleteUser(userVO);
     }
 
@@ -80,6 +91,7 @@ public class UserRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("重置用户密码: {}", userVO);
         return userService.resetUserPassword(userVO);
     }
 }

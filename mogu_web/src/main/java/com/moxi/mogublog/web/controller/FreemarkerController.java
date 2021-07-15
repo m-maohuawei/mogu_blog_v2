@@ -1,7 +1,10 @@
 package com.moxi.mogublog.web.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.moxi.mogublog.commons.entity.*;
+import com.moxi.mogublog.commons.entity.Blog;
+import com.moxi.mogublog.commons.entity.BlogSort;
+import com.moxi.mogublog.commons.entity.SystemConfig;
+import com.moxi.mogublog.commons.entity.Tag;
 import com.moxi.mogublog.commons.feign.PictureFeignClient;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
@@ -18,6 +21,7 @@ import freemarker.template.TemplateException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +41,7 @@ import java.util.*;
  * @create: 2020-03-04-11:23
  */
 @RequestMapping("freemarker")
+@RefreshScope
 @Controller
 public class FreemarkerController {
 
@@ -86,7 +91,7 @@ public class FreemarkerController {
         fourthBlog = setBlog(fourthBlog);
 
         SystemConfig systemConfig = systemConfigService.getConfig();
-        if(systemConfig == null) {
+        if (systemConfig == null) {
             return ResultUtil.result(SysConf.ERROR, "系统配置为空");
         }
 
@@ -202,7 +207,7 @@ public class FreemarkerController {
             });
 
             SystemConfig systemConfig = systemConfigService.getConfig();
-            if(systemConfig == null) {
+            if (systemConfig == null) {
                 return ResultUtil.result(SysConf.ERROR, "系统配置为空");
             }
 

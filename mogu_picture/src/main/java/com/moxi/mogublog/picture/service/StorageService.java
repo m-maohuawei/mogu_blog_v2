@@ -1,11 +1,10 @@
 package com.moxi.mogublog.picture.service;
 
-import com.moxi.mogublog.picture.entity.File;
-import com.moxi.mogublog.picture.entity.NetworkDisk;
-import com.moxi.mogublog.picture.entity.Storage;
+import com.moxi.mogublog.commons.entity.NetworkDisk;
+import com.moxi.mogublog.commons.entity.Storage;
 import com.moxi.mougblog.base.service.SuperService;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -19,40 +18,41 @@ import java.util.List;
 public interface StorageService extends SuperService<Storage> {
 
     /**
+     * 初始化网盘容量大小
+     *
+     * @param adminUid
+     * @param maxStorageSize
+     */
+    String initStorageSize(String adminUid, Long maxStorageSize);
+
+    /**
+     * 调整网盘容量大小
+     *
+     * @param adminUid
+     * @param maxStorageSize
+     */
+    String editStorageSize(String adminUid, Long maxStorageSize);
+
+    /**
+     * 根据管理员uid列表获取存储容量
+     *
+     * @param adminUidList
+     * @return
+     */
+    List<Storage> getStorageByAdminUid(List<String> adminUidList);
+
+    /**
      * 上传文件
      *
-     * @param request  请求
-     * @param fileList 文件列表
+     * @param networkDisk
+     * @param fileList
      */
-    void uploadFile(HttpServletRequest request, NetworkDisk networkDisk, List<File> fileList);
+    String uploadFile(NetworkDisk networkDisk, List<MultipartFile> fileList);
 
     /**
-     * 查询存储信息
+     * 查询当前用户存储信息
      *
-     * @param storageBean
      * @return
      */
-    Storage selectStorageBean(Storage storageBean);
-
-    /**
-     * 添加存储信息
-     *
-     * @param storageBean
-     */
-    void insertStorageBean(Storage storageBean);
-
-    /**
-     * 更新存储信息
-     *
-     * @param storageBean
-     */
-    void updateStorageBean(Storage storageBean);
-
-    /**
-     * 通过User查询存储信息
-     *
-     * @param storageBean
-     * @return
-     */
-    Storage selectStorageByUser(Storage storageBean);
+    Storage getStorageByAdmin();
 }

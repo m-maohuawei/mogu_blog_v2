@@ -104,6 +104,19 @@
       <line-chart v-if="showLineChart" :chart-data="lineChartData"></line-chart>
     </el-row>
 
+    <!--仪表盘弹框通知-->
+    <el-dialog
+      title="通知"
+      :visible.sync="notificationDialogVisible"
+      v-if="systemConfig.openDashboardNotification == 1"
+      width="50%"
+      :closeOnClickModal="false"
+      :closeOnPressEscape="false"
+      :before-close="closeNotificationDialogVisible"
+      center>
+      <span v-html="systemConfig.dashboardNotification"></span>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -122,6 +135,8 @@ import TodoList from "@/components/TodoList";
 import BarChart from "@/components/BarChart";
 import LineChart from "@/components/LineChart";
 import CalendarChart from "@/components/CalendarChart";
+import { getSystemConfig} from "@/api/systemConfig";
+import { mapMutations } from "vuex";
 
 export default {
   name: "dashboard",
@@ -150,13 +165,15 @@ export default {
       blogCountByBlogSort: [],
       tagNameArray: [],
       blogSortNameArray: [],
-      lineChartData: {}
+      lineChartData: {},
+      systemConfig: {}, // 系统配置
+      notificationDialogVisible: this.$store.state.app.openNotificationDialogVisible
     };
   },
   created() {
+    this.getSystemConfigData();
     init().then(response => {
-      console.log(response);
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         this.blogTotal = response.data.blogCount;
         this.commentTotal = response.data.commentCount;
         this.userTotal = response.data.userCount;
@@ -165,7 +182,7 @@ export default {
     });
 
     getVisitByWeek().then(response => {
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         var visitByWeek = response.data;
         var lineChartData = {
           date: visitByWeek.date,
@@ -179,45 +196,51 @@ export default {
 
     //通过标签获取博客数目
     getBlogCountByTag().then(response => {
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         this.blogCountByTag = response.data;
-
         var tagList = this.blogCountByTag;
-
         for (var a = 0; a < this.blogCountByTag.length; a++) {
           this.tagNameArray.push(tagList[a].name);
         }
-
         this.showPieChart = true;
       }
     });
 
     //通过博客分类获取博客数目
     getBlogCountByBlogSort().then(response => {
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         this.blogCountByBlogSort = response.data;
-
-        var blogSortList = this.blogCountByBlogSort;
-
+        let blogSortList = this.blogCountByBlogSort;
         for (var a = 0; a < this.blogCountByBlogSort.length; a++) {
           this.blogSortNameArray.push(blogSortList[a].name);
         }
-
         this.showPieBlogSortChart = true;
       }
     });
   },
   methods: {
+    //拿到vuex中的方法
+    ...mapMutations(["setOpenNotification"]),
+    closeNotificationDialogVisible(done) {
+      this.setOpenNotification(false);
+      done();
+    },
+    getSystemConfigData: function () {
+      getSystemConfig().then(response => {
+        if (response.code == this.$ECode.SUCCESS) {
+          this.systemConfig = response.data;
+        }
+      });
+    },
     clickBlogTagPie: function(index) {
-      var tag = this.blogCountByTag[index];
+      let tag = this.blogCountByTag[index];
       this.$router.push({
         path: "/blog/blog",
         query: { tag: tag }
       });
     },
     clickBlogSortPie: function(index) {
-      var blogSort = this.blogCountByBlogSort[index];
-
+      let blogSort = this.blogCountByBlogSort[index];
       this.$router.push({
         path: "/blog/blog",
         query: { blogSort: blogSort }
@@ -353,9 +376,9 @@ export default {
       font-size: 48px;
     }
     .card-panel-description {
-      float: right;
+      float: left;
       font-weight: bold;
-      margin: 26px 70px 0 0;
+      margin: 26px 0 0 70px;
       .card-panel-text {
         line-height: 18px;
         color: rgba(0, 0, 0, 0.45);

@@ -7,9 +7,10 @@
           class="filter-item"
           style="width: 200px;"
           v-model="keyword"
+          @change="handleFind"
           placeholder="请输入分类名称"
         ></el-input>
-        <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFind">查找</el-button>
+        <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFind" >查找</el-button>
         <el-button class="filter-item" type="primary" @click="handleRest" icon="el-icon-refresh">重置</el-button>
       </div>
 
@@ -37,7 +38,7 @@
               :key="picture.fileUid"
               class="showPicture"
               @click="checkLogoConfirm(picture.fileUid,picture.pictureUrl)"
-              :src="BASE_IMAGE_URL + picture.pictureUrl"
+              :src="picture.pictureUrl"
             >
           </div>
           <div class="addPicture" v-if="pictureSort.total - (pictureSort.pageSize*pictureSort.currentPage) < 0" @click="toPictureManager(pictureSort.pictureSortUid)">
@@ -59,7 +60,7 @@
       <span slot="footer" class="dialog-footer">
         <div class="ChooseBody" :key="index" v-for="(picture, index) in form.photoList">
           <i @click="deletePhoto(index)" class="el-icon-error inputClass" v-show="icon"></i>
-          <img style="width: 100%;height: 100%;" :src="BASE_IMAGE_URL + picture">
+          <img style="width: 100%;height: 100%;" :src="picture">
         </div>
         <el-button @click="cancel">取 消</el-button>
         <el-button type="primary" @click="commit">确 定</el-button>
@@ -88,16 +89,15 @@ export default {
 
     //加载数据
     var that = this;
-    let index = 0;
     //先加载分类
     if (!that.havePictureSorts) {
       var params = {};
-      // TODO 全部把分类加载出来，如果图片很多的话，不能这么做
+      // TODO 全部把分类加载出来，如果分类很多的话，不能这么做
       params.pageSize = 500
       params.currentPage = 1;
       params.isShow = 1;
       getPictureSortList(params).then(function(response) {
-        if (response.code == "success") {
+        if (response.code == that.$ECode.SUCCESS) {
           var pictureSorts = response.data.records;
           that.pictureSorts = pictureSorts;
           //默认初始化第一个
@@ -110,7 +110,7 @@ export default {
             params.pageSize = 24;
             params.currentPage = 1;
             getPictureList(params).then(function(response) {
-              if (response.code == "success") {
+              if (response.code == that.$ECode.SUCCESS) {
                 var newObject = {
                   pictureSortUid: pictureSortUid,
                   name: name,
@@ -137,7 +137,6 @@ export default {
 
   data() {
     return {
-      BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
       dialogVisible: this.photoVisible,
       sortList: [],
       havePictureSorts: false, //是否加载完图片分类
@@ -177,14 +176,14 @@ export default {
       var pictureSortParams = {};
       pictureSortParams.uid = pictureSortUid
       getPictureSortByUid(pictureSortParams).then(function(sortResponse) {
-        if (sortResponse.code == "success") {
+        if (sortResponse.code == that.$ECode.SUCCESS) {
           var pictureSort = sortResponse.data;
           var params = {}
           params.pictureSortUid = pictureSortUid
           params.currentPage = val
           params.pageSize = 24
           getPictureList(params).then(function(response) {
-            if (response.code == "success") {
+            if (response.code == that.$ECode.SUCCESS) {
               var newObject = {
                 pictureSortUid: pictureSortUid,
                 name: pictureSort.name,
@@ -229,7 +228,7 @@ export default {
             params.pageSize = 24
             params.currentPage = 1;
             getPictureList(params).then(function(response) {
-              if (response.code == "success") {
+              if (response.code == that.$ECode.SUCCESS) {
                 var newObject = {
                   pictureSortUid: pictureSortUid,
                   name: name,
@@ -252,10 +251,7 @@ export default {
     handleFind: function() {
       var that = this;
       if (this.keyword == "") {
-        that.$message({
-          type: "error",
-          message: "分类名称不能为空!"
-        });
+        this.handleRest()
         return;
       }
       var params = {};
@@ -264,8 +260,7 @@ export default {
       params.isShow = 1;
       params.keyword = this.keyword
       getPictureSortList(params).then(function(response) {
-        if (response.code == "success") {
-          //成功
+        if (response.code == that.$ECode.SUCCESS) {
           var pictureSorts = response.data.records;
           that.pictureSorts = pictureSorts;
           if (pictureSorts.length <= 0) {
@@ -274,7 +269,6 @@ export default {
               message: "没有搜索到任何信息！"
             });
           }
-
           var pictureSortUid = pictureSorts[0].uid;
           var name = pictureSorts[0].name;
           var pictureParams = {};
@@ -282,7 +276,7 @@ export default {
           pictureParams.pageSize = 24
           pictureParams.currentPage = 1;
           getPictureList(pictureParams).then(function(response) {
-            if (response.code == "success") {
+            if (response.code == that.$ECode.SUCCESS) {
               var newObject = {
                 pictureSortUid: pictureSortUid,
                 name: name,
@@ -305,14 +299,14 @@ export default {
       var that = this;
       var index = this.activeName;
       var pictureSortUid = this.pictureSorts[index].uid == undefined ? this.pictureSorts[index].pictureSortUid : this.pictureSorts[index].uid;
-      this.currentPictureSortUid = pictureSortUid; //当前pictureSortUid
+      this.currentPictureSortUid = pictureSortUid;
       var name = this.pictureSorts[index].name;
       var params = {};
       params.currentPage = 1;
       params.pictureSortUid = pictureSortUid;
       params.pageSize = 24;
       getPictureList(params).then(function(response) {
-        if (response.code == "success") {
+        if (response.code == that.$ECode.SUCCESS) {
           if (response.data.records.length > 0) {
             var newObject = {
               pictureSortUid: pictureSortUid,

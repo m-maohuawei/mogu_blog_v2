@@ -16,7 +16,7 @@ import java.util.Date;
 /**
  * Entity基类
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @date 2018年9月17日09:47:12
  */
 @Data
@@ -58,5 +58,7 @@ public class SuperEntity<T extends Model> extends Model {
 
     public SuperEntity() {
         this.status = EStatus.ENABLE;
+        this.createTime = new Date();
+        this.updateTime = new Date();
     }
 }

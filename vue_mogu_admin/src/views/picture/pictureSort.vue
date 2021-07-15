@@ -18,7 +18,7 @@
 
 	   	<el-table-column label="标题图" width="160" align="center">
 	      <template slot-scope="scope">
-	      	<img  v-if="scope.row.photoList" :src="BASE_IMAGE_URL + scope.row.photoList[0]" style="width: 130px;height: 70px;"/>
+	      	<img  v-if="scope.row.photoList" :src="scope.row.photoList[0]" style="width: 130px;height: 70px;"/>
 	      </template>
 	    </el-table-column>
 
@@ -94,7 +94,7 @@
 				<el-form-item label="封面" :label-width="formLabelWidth">
 	    		<div class="imgBody" v-if="form.photoList">
 	    		  	<i class="el-icon-error inputClass" v-show="icon" @click="deletePhoto()" @mouseover="icon = true"></i>
-	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" style="display:inline; width: 195px;height: 105px;"/>
+	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="form.photoList[0]" style="display:inline; width: 195px;height: 105px;"/>
 	    		</div>
 	    		<div v-else class="uploadImgBody" @click="checkPhoto">
  		 			<i class="el-icon-plus avatar-uploader-icon"></i>
@@ -126,7 +126,7 @@
 		  </div>
 		</el-dialog>
 
-		<CheckPhoto @choose_data="getChooseData" @cancelModel="cancelModel" :photoVisible="photoVisible" :photos="photoList" :files="fileIds" :limit="1"></CheckPhoto>
+		<CheckPhoto v-if="!isFirstPhotoVisible" @choose_data="getChooseData" @cancelModel="cancelModel" :photoVisible="photoVisible" :photos="photoList" :files="fileIds" :limit="1"></CheckPhoto>
 
   </div>
 </template>
@@ -140,9 +140,7 @@ import {
   stickPictureSort
 } from "@/api/pictureSort";
 import {getListByDictTypeList} from "@/api/sysDictData"
-import { formatData } from "@/utils/webUtils";
 import CheckPhoto from "../../components/CheckPhoto";
-import { Loading } from "element-ui";
 
 export default {
   components: {
@@ -154,7 +152,6 @@ export default {
   },
   data() {
     return {
-      BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
       tableData: [],
       form: {
         uid: null,
@@ -176,6 +173,7 @@ export default {
       yesNoDictList: [], // 是否字典
       fileIds: "",
       icon: false, //控制删除图标的显示
+      isFirstPhotoVisible: true, // 图片选择器是否首次显示【用于懒加载】
       rules: {
         name: [
           {required: true, message: '标题不能为空', trigger: 'blur'},
@@ -207,7 +205,7 @@ export default {
     getDictList: function () {
       var dictTypeList =  ['sys_yes_no']
       getListByDictTypeList(dictTypeList).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           var dictMap = response.data;
           this.yesNoDictList = dictMap.sys_yes_no.list
           if(dictMap.sys_yes_no.defaultValue) {
@@ -217,6 +215,7 @@ export default {
       });
     },
     handleFind: function() {
+      this.currentPage = 1
       this.pictureSortList();
     },
     handleManager: function(row) {
@@ -241,6 +240,7 @@ export default {
       this.photoList = [];
       this.fileIds = "";
       this.photoVisible = true;
+      this.isFirstPhotoVisible = false
     },
     getChooseData(data) {
       var that = this;
@@ -260,9 +260,6 @@ export default {
     deletePhoto: function() {
       this.form.photoList = null;
       this.form.fileUid = "";
-    },
-    checkPhoto() {
-      this.photoVisible = true;
     },
     //改变页码
     handleCurrentChange(val) {
@@ -296,25 +293,16 @@ export default {
           let params = {};
           params.uid = row.uid
           stickPictureSort(params).then(response => {
-            if (response.code == "success") {
+            if (response.code == this.$ECode.SUCCESS) {
               this.pictureSortList();
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消置顶"
-          });
+          this.$commonUtil.message.info("已取消置顶")
         });
     },
     handleDelete: function(row) {
@@ -327,25 +315,16 @@ export default {
           let params = {};
           params.uid = row.uid
           deletePictureSort(params).then(response => {
-            if(response.code == "success") {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+            if(response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
             this.pictureSortList();
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          this.$commonUtil.message.info("已取消删除")
         });
     },
     submitForm: function() {
@@ -355,26 +334,16 @@ export default {
         } else {
           if (this.isEditForm) {
             editPictureSort(this.form).then(response => {
-              console.log(response);
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
               this.dialogFormVisible = false;
               this.pictureSortList();
             });
           } else {
             addPictureSort(this.form).then(response => {
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
               } else {
-                this.$message({
-                  type: "error",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
               this.dialogFormVisible = false;
               this.pictureSortList();
@@ -386,7 +355,7 @@ export default {
   }
 };
 </script>
-<style>
+<style scoped>
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;

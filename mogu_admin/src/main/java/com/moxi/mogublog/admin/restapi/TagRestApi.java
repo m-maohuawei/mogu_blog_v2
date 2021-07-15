@@ -6,7 +6,6 @@ import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCom
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
-import com.moxi.mogublog.xo.service.BlogService;
 import com.moxi.mogublog.xo.service.TagService;
 import com.moxi.mogublog.xo.vo.TagVO;
 import com.moxi.mougblog.base.exception.ThrowableUtils;
@@ -28,11 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <p>
  * 标签表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @since 2018-09-08
  */
 @Api(value = "博客标签相关接口", tags = {"博客标签相关接口"})
@@ -42,9 +39,7 @@ import java.util.List;
 public class TagRestApi {
 
     @Autowired
-    TagService tagService;
-    @Autowired
-    BlogService blogService;
+    private TagService tagService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取标签列表", notes = "获取标签列表", response = String.class)
@@ -66,6 +61,7 @@ public class TagRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("增加标签");
         return tagService.addTag(tagVO);
     }
 
@@ -77,7 +73,7 @@ public class TagRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
+        log.info("编辑标签");
         return tagService.editTag(tagVO);
     }
 
@@ -89,7 +85,7 @@ public class TagRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
+        log.info("批量删除标签");
         return tagService.deleteBatchTag(tagVoList);
     }
 
@@ -98,9 +94,9 @@ public class TagRestApi {
     @ApiOperation(value = "置顶标签", notes = "置顶标签", response = String.class)
     @PostMapping("/stick")
     public String stick(@Validated({Delete.class}) @RequestBody TagVO tagVO, BindingResult result) {
-
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("置顶标签");
         return tagService.stickTag(tagVO);
     }
 
@@ -109,6 +105,7 @@ public class TagRestApi {
     @ApiOperation(value = "通过点击量排序标签", notes = "通过点击量排序标签", response = String.class)
     @PostMapping("/tagSortByClickCount")
     public String tagSortByClickCount() {
+        log.info("通过点击量排序标签");
         return tagService.tagSortByClickCount();
     }
 
@@ -123,6 +120,7 @@ public class TagRestApi {
     @ApiOperation(value = "通过引用量排序标签", notes = "通过引用量排序标签", response = String.class)
     @PostMapping("/tagSortByCite")
     public String tagSortByCite() {
+        log.info("通过引用量排序标签");
         return tagService.tagSortByCite();
     }
 }

@@ -23,8 +23,8 @@ import java.util.Map;
 /**
  * json解析的工具类
  *
- * @author xzx19950624@qq.com
- * 2018年5月7日  下午5:21:23
+ * @author 陌溪
+ * 2018年5月7日 下午5:21:23
  */
 public class JsonUtils {
 
@@ -36,14 +36,10 @@ public class JsonUtils {
      * 把对象转换为json数据
      *
      * @param obj
-     * @return
-     * @author xuzhixiang
-     * 2018年5月7日  下午5:27:16
+     * @return 2018年5月7日  下午5:27:16
      */
     public static String objectToJson(Object obj) {
-
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
-
         try {
             String json = gson.toJson(obj);
             return json;
@@ -71,6 +67,43 @@ public class JsonUtils {
         return null;
     }
 
+    /**
+     * 将Object类型的map转换成String类型
+     *
+     * @param map
+     * @return
+     */
+    public static Map<String, String> mapToMap(Map<String, Object> map) {
+        Map<String, String> returnMap = new HashMap<>();
+        for (String key : map.keySet()) {
+            returnMap.put(key, String.valueOf(map.get(key)));
+        }
+        return returnMap;
+    }
+
+    /**
+     * 任意类型转换成Map
+     * @return
+     */
+    public static Map<String, String> object2Map(Object obj) {
+        Map<String, String> hashMap = new HashMap();
+        try {
+            Class c = obj.getClass();
+            Method m[] = c.getDeclaredMethods();
+            for (int i = 0; i < m.length; i++) {
+                if (m[i].getName().indexOf("get")==0) {
+                    // 得到Map的key
+                    String suffixKey = m[i].getName().substring(4);
+                    String prefixKey = m[i].getName().substring(3,4).toLowerCase();
+                    hashMap.put(prefixKey + suffixKey, String.valueOf(m[i].invoke(obj, new Object[0])));
+                }
+            }
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+        }
+        return hashMap;
+    }
+
 
     /**
      * 把json字符串转化为对象
@@ -78,8 +111,6 @@ public class JsonUtils {
      * @param jsonString
      * @param clazz
      * @return
-     * @author xuzhixiang
-     * 2018年5月7日  下午5:39:43
      */
     public static Object jsonToObject(String jsonString, Class<?> clazz) {
 
@@ -88,7 +119,6 @@ public class JsonUtils {
         try {
             obj = gson.fromJson(jsonString, clazz);
         } catch (JsonSyntaxException e) {
-
             e.printStackTrace();
         }
         return obj;
@@ -99,8 +129,6 @@ public class JsonUtils {
      *
      * @param jsonArray
      * @return
-     * @author xuzhixiang
-     * 2018年5月7日  下午5:49:18
      */
     public static ArrayList<?> jsonArrayToArrayList(String jsonArray) {
 
@@ -123,9 +151,6 @@ public class JsonUtils {
 
     /**
      * JSON 转 ArrayList
-     *
-     * @author xzx19950624@qq.com
-     * @date 2018年10月27日下午4:43:25
      */
     public static ArrayList<?> jsonArrayToArrayList(String jsonArray, Class<?> clazz) {
 
@@ -149,8 +174,6 @@ public class JsonUtils {
      *
      * @param json
      * @return
-     * @author xuzhixiang
-     * 2018年5月7日  下午5:54:22
      */
     public static Map<String, Object> jsonToMap(String json) {
 
@@ -204,7 +227,6 @@ public class JsonUtils {
      * @param beanType
      * @param <T>
      * @return
-     * @date 2020年1月16日11:05:51
      */
     public static <T> T mapToPojo(Map<String, Object> map, Class<T> beanType) {
 
@@ -240,8 +262,6 @@ public class JsonUtils {
 
     /**
      * 将json数据转换成pojo对象list
-     * <p>Title: jsonToList</p>
-     * <p>Description: </p>
      *
      * @param jsonData
      * @param beanType

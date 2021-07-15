@@ -27,12 +27,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * <p>
  * 字典数据 RestApi
- * </p>
  *
  * @author 陌溪
- * @since 2020年2月15日21:16:31
+ * @date 2020年2月15日21:16:31
  */
 @RestController
 @RequestMapping("/sysDictData")
@@ -41,7 +39,7 @@ import java.util.List;
 public class SysDictDataRestApi {
 
     @Autowired
-    SysDictDataService sysDictDataService;
+    private SysDictDataService sysDictDataService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取字典数据列表", notes = "获取字典数据列表", response = String.class)
@@ -51,7 +49,7 @@ public class SysDictDataRestApi {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         log.info("获取字典数据列表");
-        return ResultUtil.result(SysConf.SUCCESS, sysDictDataService.getPageList(sysDictDataVO));
+        return ResultUtil.successWithData(sysDictDataService.getPageList(sysDictDataVO));
     }
 
     @AvoidRepeatableCommit

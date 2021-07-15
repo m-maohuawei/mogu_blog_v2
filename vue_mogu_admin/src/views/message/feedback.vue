@@ -55,27 +55,17 @@
 
       <el-table-column label="反馈内容" width="200" align="center">
         <template slot-scope="scope">
-          <el-popover
-            v-if="scope.row.content"
-            placement="top-start"
-            width="400"
-            trigger="hover"
-            :content="scope.row.content">
-            <el-button slot="reference">{{subText(scope.row.content, 10)}}</el-button>
-          </el-popover>
+          <el-tooltip class="item" effect="dark" :content="scope.row.content" placement="top">
+            <span>{{subText(scope.row.content, 10)}}</span>
+          </el-tooltip>
         </template>
       </el-table-column>
 
       <el-table-column label="回复" width="200" align="center">
         <template slot-scope="scope">
-          <el-popover
-            v-if="scope.row.reply"
-            placement="top-start"
-            width="400"
-            trigger="hover"
-            :content="scope.row.reply">
-            <el-button slot="reference">{{subText(scope.row.reply, 10)}}</el-button>
-          </el-popover>
+          <el-tooltip class="item" effect="dark" :content="scope.row.reply" placement="top">
+            <span>{{subText(scope.row.reply, 10)}}</span>
+          </el-tooltip>
         </template>
       </el-table-column>
 
@@ -211,18 +201,12 @@
         })
           .then(() => {
             deleteBatchFeedback(that.multipleSelection).then(response => {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
               that.feedbackList();
             });
           })
           .catch(() => {
-            this.$message({
-              type: "info",
-              message: "已取消删除"
-            });
+            this.$commonUtil.info("已取消删除")
           });
       },
       goUserInfo: function(user) {
@@ -249,10 +233,12 @@
         params.pageSize = this.pageSize;
 
         getFeedbackList(params).then(response => {
-          this.tableData = response.data.records;
-          this.currentPage = response.data.current;
-          this.pageSize = response.data.size;
-          this.total = response.data.total;
+          if(response.code == this.$ECode.SUCCESS) {
+            this.tableData = response.data.records;
+            this.currentPage = response.data.current;
+            this.pageSize = response.data.size;
+            this.total = response.data.total;
+          }
         });
       },
       getFormObject: function() {
@@ -269,20 +255,20 @@
       getDictList: function () {
         var dictTypeList = ['sys_feedback_status']
         getListByDictTypeList(dictTypeList).then(response => {
-          if (response.code == "success") {
-            var dictMap = response.data;
+          if (response.code == this.$ECode.SUCCESS) {
+            let dictMap = response.data;
             this.feedbackStatusDictList = dictMap.sys_feedback_status.list
           }
         });
       },
       handleFind: function() {
+        this.currentPage = 1
         this.feedbackList();
       },
       handleEdit: function(row) {
         title: "编辑反馈";
         this.dialogFormVisible = true;
         this.isEditForm = true;
-        console.log(row);
         this.form = row;
       },
       handleDelete: function(row) {
@@ -298,19 +284,12 @@
             feedback.uid = row.uid
             params.push(feedback);
             deleteBatchFeedback(params).then(response => {
-              console.log(response);
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
               that.feedbackList();
             });
           })
           .catch(() => {
-            this.$message({
-              type: "info",
-              message: "已取消删除"
-            });
+            this.$commonUtil.message.info("已取消删除")
           });
       },
       handleCurrentChange: function(val) {
@@ -325,18 +304,12 @@
         if (this.isEditForm) {
           editFeedback(this.form).then(response => {
             console.log(response);
-            if (response.code == "success") {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+            if (response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
               this.dialogFormVisible = false;
               this.linkList();
             } else {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
           });
         }

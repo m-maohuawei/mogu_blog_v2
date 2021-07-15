@@ -3,8 +3,8 @@ package com.moxi.mogublog.web.restapi;
 
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
+import com.moxi.mogublog.web.annotion.log.BussinessLog;
 import com.moxi.mogublog.web.global.SysConf;
-import com.moxi.mogublog.web.log.BussinessLog;
 import com.moxi.mogublog.xo.service.BlogService;
 import com.moxi.mogublog.xo.service.BlogSortService;
 import com.moxi.mogublog.xo.service.TagService;
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * 分类RestApi
  *
- * @author xzx19950624@qq.com
+ * @author 陌溪
  * @date 2019年11月26日18:59:21
  */
 @RestController
@@ -42,11 +42,7 @@ public class ClassifyRestApi {
 
     /**
      * 获取分类的信息
-     *
-     * @author xzx19950624@qq.com
-     * @date 2018年11月6日下午8:57:48
      */
-
     @ApiOperation(value = "获取分类的信息", notes = "获取分类的信息")
     @GetMapping("/getBlogSortList")
     public String getBlogSortList() {

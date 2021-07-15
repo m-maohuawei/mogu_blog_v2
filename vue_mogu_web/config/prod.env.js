@@ -2,20 +2,6 @@
 module.exports = {
   NODE_ENV: '"production"',
 
-  //配置线上环境
-  // BASE_BLOG_API: '"http://47.115.54.30:9527"',
-  // PICTURE_API: '"http://47.115.54.30:8602"',
-  // WEB_API: '"http://47.115.54.30:8603"',
-
-  //配置线上环境
-  VUE_MOGU_WEB: '"http://demoweb.moguit.cn"',
-  PICTURE_API: '"http://47.115.54.30:8602"',
-  WEB_API: '"http://47.115.54.30:8603"',
-  PICTURE_HOST: '""',
-  ELASTICSEARCH: '"http://47.115.54.30:8605"',
-
-  // 配置测试环境
-  // WEB_API: '"http://192.168.1.101:8603"',
-  // PICTURE_HOST: '"http://192.168.1.101:8600"',
-
+  // ############## 注意 ############
+  //  生产环境配置文件在项目 vue_mogu_admin根目录下的 .env文件 进行配置和修改【本配置文件已失效】
 }

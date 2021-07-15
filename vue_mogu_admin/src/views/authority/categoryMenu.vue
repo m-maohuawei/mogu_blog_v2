@@ -36,14 +36,13 @@
                 </template>
               </el-table-column>
 
-              <el-table-column label width="100" align="center">
+              <el-table-column label width="50" align="center">
                 <template slot-scope="scope_child">
-<!--                  <span>{{ scope_child.row.icon }}</span>-->
                   <i :class="scope_child.row.icon" />
                 </template>
               </el-table-column>
 
-              <el-table-column label width="200" align="center">
+              <el-table-column label width="250" align="center">
                 <template slot-scope="scope_child">
                   <span>{{ scope_child.row.url }}</span>
                 </template>
@@ -55,23 +54,15 @@
                 </template>
               </el-table-column>
 
-              <el-table-column label width="160" align="center">
-                <template slot-scope="scope_child">
-                  <span>{{ scope_child.row.createTime }}</span>
+              <el-table-column width="120" align="center">
+                <template slot-scope="scope">
+                  <el-tag v-for="item in jumpExternalDictList" :key="item.uid" v-if="scope.row.isJumpExternalUrl == item.dictValue" :type="item.listClass">{{item.dictLabel}}</el-tag>
                 </template>
               </el-table-column>
 
-              <el-table-column label width="100" align="center">
-                <template slot-scope="scope_child">
-                  <template v-if="scope_child.row.status == 1">
-                    <span>正常</span>
-                  </template>
-                  <template v-if="scope_child.row.status == 2">
-                    <span>推荐</span>
-                  </template>
-                  <template v-if="scope_child.row.status == 0">
-                    <span>已删除</span>
-                  </template>
+              <el-table-column width="100" align="center">
+                <template slot-scope="scope">
+                  <el-tag type="warning">{{ scope.row.sort }}</el-tag>
                 </template>
               </el-table-column>
 
@@ -111,14 +102,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="图标" width="100" align="center">
+      <el-table-column label="图标" width="50" align="center">
         <template slot-scope="scope">
           <i :class="scope.row.icon" />
-<!--          <span>{{ scope.row.icon }}</span>-->
         </template>
       </el-table-column>
 
-      <el-table-column label="路由" width="200" align="center">
+      <el-table-column label="路由" width="250" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.url }}</span>
         </template>
@@ -130,27 +120,19 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" width="160" align="center">
+      <el-table-column label="是否跳转外链" width="120" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.createTime }}</span>
+          <el-tag v-for="item in jumpExternalDictList" :key="item.uid" v-if="scope.row.isJumpExternalUrl == item.dictValue" :type="item.listClass">{{item.dictLabel}}</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" width="100" align="center">
+      <el-table-column label="排序" width="100" align="center">
         <template slot-scope="scope">
-          <template v-if="scope.row.status == 1">
-            <span>正常</span>
-          </template>
-          <template v-if="scope.row.status == 2">
-            <span>推荐</span>
-          </template>
-          <template v-if="scope.row.status == 0">
-            <span>已删除</span>
-          </template>
+          <el-tag type="warning">{{ scope.row.sort }}</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" fixed="right" min-width="230">
+      <el-table-column label="操作" fixed="right" min-width="270">
         <template slot-scope="scope">
           <el-button @click="handleStick(scope.row)" type="warning" size="small" v-permission="'/categoryMenu/stick'">置顶</el-button>
           <el-button @click="handleEdit(scope.row)" type="primary" size="small" v-permission="'/categoryMenu/edit'">编辑</el-button>
@@ -216,14 +198,24 @@
           </el-input>
         </el-form-item>
 
+        <el-form-item label="是否跳转外链" :label-width="formLabelWidth" prop="isShow">
+          <el-radio-group v-model="form.isJumpExternalUrl" size="small">
+            <el-radio v-for="item in jumpExternalDictList" :key="item.uid" :label="parseInt(item.dictValue)" border>{{item.dictLabel}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
         <el-form-item label="路由" :label-width="formLabelWidth" prop="url">
-          <el-input v-model="form.url" auto-complete="off"></el-input>
+          <el-input v-model="form.url" placeholder="跳转外链时，路由为外部URL" auto-complete="off"></el-input>
         </el-form-item>
 
         <el-form-item label="是否显示" :label-width="formLabelWidth" prop="isShow">
           <el-radio-group v-model="form.isShow" size="small">
             <el-radio v-for="item in yesNoDictList" :key="item.uid" :label="parseInt(item.dictValue)" border>{{item.dictLabel}}</el-radio>
           </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="排序" :label-width="formLabelWidth" prop="sort">
+          <el-input v-model="form.sort" auto-complete="off"></el-input>
         </el-form-item>
 
       </el-form>
@@ -270,7 +262,9 @@ export default {
       isEditForm: false,
       menuLevelDictList: [], //菜单等级字典
       yesNoDictList: [], // 是否字典
+      jumpExternalDictList: [], // 是否字典
       yesNoDefault: null,
+      jumpExternalDefault: null,
       form: {
         uid: null,
         name: "",
@@ -303,7 +297,11 @@ export default {
         ],
         isShow: [
           {required: true, message: '显示字段不能为空', trigger: 'blur'}
-        ]
+        ],
+        sort: [
+          {required: true, message: '排序字段不能为空', trigger: 'blur'},
+          {pattern: /^[0-9]\d*$/, message: '排序字段只能为自然数'},
+        ],
       }
     };
   },
@@ -314,8 +312,7 @@ export default {
   methods: {
     menuList: function() {
       getAllMenu().then(response => {
-        console.log("getAllMenu", response);
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           this.tableData = response.data;
           this.menuOptions = response.data;
         }
@@ -333,16 +330,19 @@ export default {
      * 字典查询
      */
     getDictList: function () {
-      var dictTypeList =  ['sys_menu_level', 'sys_yes_no']
+      var dictTypeList =  ['sys_menu_level', 'sys_yes_no', 'sys_jump_external']
       getListByDictTypeList(dictTypeList).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           var dictMap = response.data;
           this.menuLevelDictList = dictMap.sys_menu_level.list
           this.yesNoDictList = dictMap.sys_yes_no.list
+          this.jumpExternalDictList = dictMap.sys_jump_external.list
           if(dictMap.sys_yes_no.defaultValue) {
             this.yesNoDefault = parseInt(dictMap.sys_yes_no.defaultValue);
           }
-
+          if(dictMap.sys_jump_external.defaultValue) {
+            this.jumpExternalDefault = parseInt(dictMap.sys_jump_external.defaultValue);
+          }
         }
       });
     },
@@ -353,9 +353,10 @@ export default {
         summary: "",
         icon: "",
         url: "",
-        sort: "",
+        sort: 0,
         menuType: 0, //菜单类型  菜单
-        isShow: this.yesNoDefault
+        isShow: this.yesNoDefault,
+        isJumpExternalUrl: this.jumpExternalDefault
       };
       return formObject;
     },
@@ -371,7 +372,6 @@ export default {
     handleEdit: function(row) {
       this.dialogFormVisible = true;
       this.isEditForm = true;
-      var parentUid = row.parentUid;
       this.title = "编辑菜单"
       this.form = row;
     },
@@ -385,29 +385,19 @@ export default {
           let params = {}
           params.uid = row.uid
           stickMenu(params).then(response => {
-            if (response.code == "success") {
+            if (response.code == this.$ECode.SUCCESS) {
               this.menuList();
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消置顶"
-          });
+          this.$commonUtil.message.info("已取消置顶")
         });
     },
     handleDelete: function(row) {
-      var that = this;
       this.$confirm("此操作将把菜单删除, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -417,25 +407,16 @@ export default {
           let params = {}
           params.uid = row.uid
           deleteMenu(params).then(response => {
-            if(response.code == "success") {
-              this.$message({
-                type: "success",
-                message: response.data
-              });
+            if(response.code == this.$ECode.SUCCESS) {
+              this.$commonUtil.message.success(response.message)
             } else {
-              this.$message({
-                type: "error",
-                message: response.data
-              });
+              this.$commonUtil.message.error(response.message)
             }
-            that.menuList();
+            this.menuList();
           });
         })
         .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
+          this.$commonUtil.message.info("已取消删除")
         });
     },
     //菜单远程搜索函数
@@ -448,7 +429,7 @@ export default {
         params.append("pageSize", 100);
         getMenuList(params).then(response => {
           console.log(response);
-          if (response.code == "success") {
+          if (response.code == this.$ECode.SUCCESS) {
             this.menuOptions = response.data.data.records;
           }
         });
@@ -464,42 +445,26 @@ export default {
         } else {
           if (this.isEditForm) {
             editMenu(this.form).then(response => {
-              console.log(response);
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
                 this.dialogFormVisible = false;
-                this.menuList();
               } else {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
             });
           } else {
             addMenu(this.form).then(response => {
-              console.log(response);
-              if (response.code == "success") {
-                this.$message({
-                  type: "success",
-                  message: response.data
-                });
+              if (response.code == this.$ECode.SUCCESS) {
+                this.$commonUtil.message.success(response.message)
                 this.dialogFormVisible = false;
                 this.menuList();
               } else {
-                this.$message({
-                  type: "error",
-                  message: response.data
-                });
+                this.$commonUtil.message.error(response.message)
               }
             });
           }
         }
       })
-
     }
   }
 };

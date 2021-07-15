@@ -8,12 +8,10 @@ import com.moxi.mougblog.base.service.SuperService;
 import java.util.List;
 
 /**
- * <p>
  * 评论表 服务类
- * </p>
  *
- * @author xuzhixiang
- * @since 2018-09-08
+ * @author 陌溪
+ * @date 2018-09-08
  */
 public interface CommentService extends SuperService<Comment> {
 
@@ -23,7 +21,7 @@ public interface CommentService extends SuperService<Comment> {
      * @author xzx19950624@qq.com
      * @date 2018年10月22日下午3:43:38
      */
-    public Integer getCommentCount(int status);
+    Integer getCommentCount(int status);
 
     /**
      * 获取评论列表
@@ -31,35 +29,42 @@ public interface CommentService extends SuperService<Comment> {
      * @param commentVO
      * @return
      */
-    public IPage<Comment> getPageList(CommentVO commentVO);
+    IPage<Comment> getPageList(CommentVO commentVO);
 
     /**
      * 新增评论
      *
      * @param commentVO
      */
-    public String addComment(CommentVO commentVO);
+    String addComment(CommentVO commentVO);
 
     /**
      * 编辑评论
      *
      * @param commentVO
      */
-    public String editComment(CommentVO commentVO);
+    String editComment(CommentVO commentVO);
 
     /**
      * 删除评论
      *
      * @param commentVO
      */
-    public String deleteComment(CommentVO commentVO);
+    String deleteComment(CommentVO commentVO);
 
     /**
      * 批量删除评论
      *
      * @param commentVOList
      */
-    public String deleteBatchComment(List<CommentVO> commentVOList);
+    String deleteBatchComment(List<CommentVO> commentVOList);
+
+    /**
+     *
+     * @param blogUidList
+     * @return
+     */
+    String batchDeleteCommentByBlogUid(List<String> blogUidList);
 
 
 }

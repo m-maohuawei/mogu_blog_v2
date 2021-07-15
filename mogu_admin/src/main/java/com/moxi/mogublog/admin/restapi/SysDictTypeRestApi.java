@@ -4,7 +4,6 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.SysDictTypeService;
 import com.moxi.mogublog.xo.vo.SysDictTypeVO;
@@ -28,12 +27,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * <p>
  * 字典类型 RestApi
- * </p>
  *
  * @author 陌溪
- * @since 2020年2月15日21:16:31
+ * @date 2020年2月15日21:16:31
  */
 @RestController
 @RequestMapping("/sysDictType")
@@ -42,7 +39,7 @@ import java.util.List;
 public class SysDictTypeRestApi {
 
     @Autowired
-    SysDictTypeService sysDictTypeService;
+    private SysDictTypeService sysDictTypeService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取字典类型列表", notes = "获取字典类型列表", response = String.class)
@@ -52,7 +49,7 @@ public class SysDictTypeRestApi {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         log.info("获取字典类型列表");
-        return ResultUtil.result(SysConf.SUCCESS, sysDictTypeService.getPageList(sysDictTypeVO));
+        return ResultUtil.successWithData(sysDictTypeService.getPageList(sysDictTypeVO));
     }
 
     @AvoidRepeatableCommit

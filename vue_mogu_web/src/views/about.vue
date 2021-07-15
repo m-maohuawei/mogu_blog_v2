@@ -22,23 +22,23 @@
 
         <el-divider></el-divider>
 
-<!--        <sticky :sticky-top="60">-->
           <CommentBox
             :userInfo="userInfo"
             :commentInfo="commentInfo"
             @submit-box="submitBox"
             :showCancel="showCancel"
+            v-if="openComment == '1'"
           ></CommentBox>
-<!--        </sticky>-->
-        <div class="message_infos">
+        <div class="message_infos" v-if="openComment == '1'">
           <CommentList :comments="comments" :commentInfo="commentInfo"></CommentList>
           <div class="noComment" v-if="comments.length ==0">还没有评论，快来抢沙发吧！</div>
         </div>
+
       </div>
       <div class="sidebar">
         <div class="about">
           <p class="avatar" v-if="info.photoList">
-            <img :src="PICTURE_HOST + info.photoList[0]" alt />
+            <img :src="info.photoList[0]" alt />
           </p>
           <p class="abname">{{info.nickName}}</p>
           <p class="abposition">{{info.occupation}}</p>
@@ -58,12 +58,12 @@
     import { mapMutations } from "vuex";
     import { addComment, getCommentList } from "../api/comment";
     import Sticky from "@/components/Sticky";
+    import {getWebConfig} from "../api";
 
     export default {
         name: "about",
         data() {
             return {
-                source: "MESSAGE_BOARD",
                 dialogPictureVisible: false,
                 dialogImageUrl: "",
                 showCancel: false,
@@ -78,10 +78,10 @@
                 total: 0, //总数量
                 toInfo: {},
                 userInfo: {},
-                PICTURE_HOST: process.env.PICTURE_HOST,
                 info: {},
                 sid: "test",
-                isRouterAlive: false
+                isRouterAlive: false,
+                openComment: "0", // 开启评论
             };
         },
         components: {
@@ -108,9 +108,9 @@
               params.currentPage = that.currentPage + 1
               params.pageSize = that.pageSize;
               getCommentList(params).then(response => {
-                if (response.code == "success") {
+                if (response.code == that.$ECode.SUCCESS) {
                   that.comments = that.comments.concat(response.data.records);
-                  that.setCommentList(this.comments);
+                  that.setCommentList(that.comments);
                   that.currentPage = response.data.current;
                   that.pageSize = response.data.size;
                   that.total = response.data.total;
@@ -122,18 +122,35 @@
         created() {
             var that = this;
             getMe().then(response => {
-                if (response.code == "success") {
+                if (response.code == this.$ECode.SUCCESS) {
                     this.info = response.data;
                 }
             });
             this.getCommentDataList();
+          this.setCommentAndAdmiration()
         },
         methods: {
             //拿到vuex中的写的两个方法
-            ...mapMutations(["setCommentList"]),
+            ...mapMutations(["setCommentList", "setWebConfigData"]),
             handleCurrentChange: function(val) {
                 this.currentPage = val;
                 this.getCommentDataList();
+            },
+            // 设置是否开启评论和赞赏
+            setCommentAndAdmiration() {
+              let webConfigData = this.$store.state.app.webConfigData
+              if(webConfigData.createTime) {
+                this.openComment = webConfigData.openComment
+              } else {
+                getWebConfig().then(response => {
+                  if (response.code == this.$ECode.SUCCESS) {
+                    webConfigData = response.data;
+                    // 存储在Vuex中
+                    this.setWebConfigData(response.data)
+                    this.openComment = webConfigData.openComment
+                  }
+                });
+              }
             },
             imageChange: function(e) {
                 //首先需要判断点击的是否是图片
@@ -152,7 +169,7 @@
                 params.content = e.content;
                 params.blogUid = e.blogUid;
                 addComment(params).then(response => {
-                    if (response.code == "success") {
+                    if (response.code == this.$ECode.SUCCESS) {
                         this.$notify({
                             title: "成功",
                             message: "发表成功~",
@@ -175,7 +192,7 @@
                 params.currentPage = this.currentPage;
                 params.pageSize = this.pageSize;
                 getCommentList(params).then(response => {
-                    if (response.code == "success") {
+                    if (response.code == this.$ECode.SUCCESS) {
                         this.comments = response.data.records;
                         this.setCommentList(this.comments);
                         this.currentPage = response.data.current;
@@ -188,22 +205,14 @@
     };
 </script>
 
-<style>
+<style scoped>
   .emoji-panel-wrap {
-    box-sizing: border-box;
-    border: 1px solid #cccccc;
-    border-radius: 5px;
-    background-color: #ffffff;
     width: 470px;
-    height: 180px;
-    position: absolute;
-    z-index: 999;
-    left: 35px;
-    top: 8px;
   }
   .emoji-size-small {
     zoom: 0.3;
     margin: 5px;
+    vertical-align: middle;
   }
   .emoji-size-large {
     zoom: 0.5; // emojipanel表情大小

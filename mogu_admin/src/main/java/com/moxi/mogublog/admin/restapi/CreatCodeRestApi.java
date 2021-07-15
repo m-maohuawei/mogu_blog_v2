@@ -4,6 +4,7 @@ import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.CheckUtils;
 import com.moxi.mogublog.utils.ResultUtil;
+import com.moxi.mougblog.base.global.Constants;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,14 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>
  * 验证码服务RestApi
- * </p>
  *
  * @author limbo
  * @since 2018-10-22
  */
 @RestController
+@RefreshScope
 @RequestMapping("/creatCode")
 @Api(value = "生成验证码相关接口", tags = {"生成验证码相关接口"})
 @Slf4j
@@ -37,16 +38,12 @@ public class CreatCodeRestApi {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
-
     @Autowired
     private RabbitTemplate rabbitTemplate;
-
     @Value(value = "${templateCode}")
     private String templateCode;
-
     @Value(value = "${signName}")
     private String signName;
-
     @Value(value = "${moguBlog.email}")
     private String moguBlogEmail;
 
@@ -105,22 +102,22 @@ public class CreatCodeRestApi {
                         "</html>";
 
 
-        Map<String, String> map = new HashMap<>();
-
+        Map<String, String> map = new HashMap<>(Constants.NUM_FOUR);
         if (CheckUtils.checkEmail(info)) {
             map.put("receiver", info);
             map.put("text", text);
-
             //发送到RabbitMq
             rabbitTemplate.convertAndSend("exchange.direct", "mogu.email", map);
-
         }
         if (CheckUtils.checkMobileNumber(info)) {
             //code是我们申请模板时写的参数
             map.put("param", code);
-            map.put("mobile", info);//手机号
-            map.put("template_code", templateCode);//短信模板编号
-            map.put("sign_name", signName);//短信签名
+            //手机号
+            map.put("mobile", info);
+            //短信模板编号
+            map.put("template_code", templateCode);
+            //短信签名
+            map.put("sign_name", signName);
             //发送到RabbitMq
             rabbitTemplate.convertAndSend("exchange.direct", "mogu.sms", map);
         }

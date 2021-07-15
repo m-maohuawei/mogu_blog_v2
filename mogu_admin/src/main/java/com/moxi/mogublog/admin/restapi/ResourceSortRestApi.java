@@ -4,7 +4,6 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.ResourceSortService;
 import com.moxi.mogublog.xo.vo.ResourceSortVO;
@@ -27,12 +26,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <p>
  * 资源分类表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2020年1月9日19:23:28
+ * @author 陌溪
+ * @date 2020年1月9日19:23:28
  */
 @Api(value = "资源分类相关接口", tags = {"资源分类相关接口"})
 @RestController
@@ -41,7 +38,7 @@ import java.util.List;
 public class ResourceSortRestApi {
 
     @Autowired
-    ResourceSortService resourceSortService;
+    private ResourceSortService resourceSortService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取资源分类列表", notes = "获取资源分类列表", response = String.class)
@@ -49,7 +46,8 @@ public class ResourceSortRestApi {
     public String getList(@Validated({GetList.class}) @RequestBody ResourceSortVO resourceSortVO, BindingResult result) {
 
         ThrowableUtils.checkParamArgument(result);
-        return ResultUtil.result(SysConf.SUCCESS, resourceSortService.getPageList(resourceSortVO));
+        log.info("获取资源分类列表:{}", resourceSortVO);
+        return ResultUtil.successWithData(resourceSortService.getPageList(resourceSortVO));
     }
 
     @AvoidRepeatableCommit
@@ -61,6 +59,7 @@ public class ResourceSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("增加资源分类:{}", resourceSortVO);
         return resourceSortService.addResourceSort(resourceSortVO);
     }
 
@@ -72,6 +71,7 @@ public class ResourceSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("编辑资源分类:{}", resourceSortVO);
         return resourceSortService.editResourceSort(resourceSortVO);
     }
 
@@ -83,7 +83,7 @@ public class ResourceSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
+        log.info("批量删除资源分类:{}", resourceSortVOList);
         return resourceSortService.deleteBatchResourceSort(resourceSortVOList);
     }
 
@@ -95,6 +95,7 @@ public class ResourceSortRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("置顶分类:{}", resourceSortVO);
         return resourceSortService.stickResourceSort(resourceSortVO);
     }
 }

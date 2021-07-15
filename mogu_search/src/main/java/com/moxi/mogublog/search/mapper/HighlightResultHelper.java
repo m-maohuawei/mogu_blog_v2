@@ -18,6 +18,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ElasticSearch高亮配置
+ */
 @Slf4j
 @Component
 public class HighlightResultHelper implements SearchResultMapper {
@@ -41,7 +44,8 @@ public class HighlightResultHelper implements SearchResultMapper {
                 results.add(result);
             }
         }
-        return new AggregatedPageImpl<T>(results, pageable, response.getHits().getTotalHits(), response.getAggregations(), response.getScrollId());
+        return new AggregatedPageImpl<T>(results, pageable, response.getHits().getTotalHits(), response
+                .getAggregations(), response.getScrollId());
     }
 
 

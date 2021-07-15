@@ -8,6 +8,8 @@
 //import org.springframework.data.solr.core.convert.SolrJConverter;
 //
 ///**
+// * Solr配置相关
+// *
 // * @author limboy
 // * @create 2018-09-29 16:09
 // */

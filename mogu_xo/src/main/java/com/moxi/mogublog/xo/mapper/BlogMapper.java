@@ -9,11 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
  * 博客表 Mapper 接口
- * </p>
  *
- * @author xuzhixiang
+ * @author 陌溪
  * @since 2018-09-08
  */
 public interface BlogMapper extends SuperMapper<Blog> {
@@ -23,7 +21,7 @@ public interface BlogMapper extends SuperMapper<Blog> {
      *
      * @return
      */
-    @Select("SELECT tag_uid, COUNT(tag_uid) as count FROM  t_blog GROUP BY tag_uid")
+    @Select("SELECT tag_uid, COUNT(tag_uid) as count FROM  t_blog where status = 1 GROUP BY tag_uid")
     List<Map<String, Object>> getBlogCountByTag();
 
     /**

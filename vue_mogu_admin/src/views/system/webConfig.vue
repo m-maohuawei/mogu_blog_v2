@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
 
-    <el-tabs type="border-card">
+    <el-tabs type="border-card" @tab-click="handleClick">
       <el-tab-pane v-permission="'/webConfig/getWebConfig'">
         <span slot="label">
           <i class="el-icon-date"></i> 网站信息
@@ -22,7 +22,7 @@
                 @click="deletePhoto()"
                 @mouseover="icon = true"
               ></i>
-              <img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]">
+              <img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="form.photoList[0]">
             </div>
             <div v-else class="uploadImgBody" @click="checkPhoto">
               <i class="el-icon-plus avatar-uploader-icon"></i>
@@ -30,12 +30,12 @@
           </el-form-item>
 
           <el-row :gutter="24">
-            <el-col :span="8">
+            <el-col :span="10">
               <el-form-item label="网站名称" prop="oldPwd">
                 <el-input v-model="form.name" style="width: 400px"></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="10">
               <el-form-item label="标题" prop="newPwd1">
                 <el-input v-model="form.title" style="width: 400px"></el-input>
               </el-form-item>
@@ -43,12 +43,12 @@
           </el-row>
 
           <el-row :gutter="24">
-            <el-col :span="8">
+            <el-col :span="10">
               <el-form-item label="关键字" prop="newPwd2">
                 <el-input v-model="form.keyword" style="width: 400px"></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="10">
               <el-form-item label="描述" prop="newPwd1">
                 <el-input v-model="form.summary" style="width: 400px"></el-input>
               </el-form-item>
@@ -56,51 +56,14 @@
           </el-row>
 
           <el-row :gutter="24">
-            <el-col :span="8">
+            <el-col :span="10">
               <el-form-item label="作者" prop="newPwd2">
                 <el-input v-model="form.author" style="width: 400px"></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="10">
               <el-form-item label="备案号" prop="newPwd2">
                 <el-input v-model="form.recordNum" style="width: 400px"></el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="24">
-            <el-col :span="3">
-              <el-form-item label="阿里支付">
-                <el-upload
-                  class="avatar-uploader"
-                  name="file"
-                  :action="uploadPictureHost"
-                  :file-list="fileList"
-                  :show-file-list="false"
-                  :before-upload="beforeUpload"
-                  :on-success="fileSuccess_ali"
-                  :data="otherData"
-                >
-                  <img v-if="form.aliPayPhoto" :src="BASE_IMAGE_URL + form.aliPayPhoto" class="avatar">
-                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                </el-upload>
-              </el-form-item>
-            </el-col>
-            <el-col :span="3">
-              <el-form-item label="微信支付">
-                <el-upload
-                  class="avatar-uploader"
-                  name="file"
-                  :action="uploadPictureHost"
-                  :file-list="fileList"
-                  :show-file-list="false"
-                  :before-upload="beforeUpload"
-                  :on-success="fileSuccess_weixin"
-                  :data="otherData"
-                >
-                  <img v-if="form.weixinPayPhoto" :src="BASE_IMAGE_URL + form.weixinPayPhoto" class="avatar">
-                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                </el-upload>
               </el-form-item>
             </el-col>
           </el-row>
@@ -119,10 +82,91 @@
             </el-col>
           </el-row>
 
+          <el-form-item>
+            <el-button type="primary" @click="submitForm()" v-permission="'/webConfig/editWebConfig'">保 存</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
+
+      <el-tab-pane v-permission="'/webConfig/getWebConfig'">
+        <span slot="label">
+          <i class="el-icon-date"></i> 评论&打赏
+        </span>
+
+        <el-form
+          style="margin-left: 20px;"
+          label-position="left"
+          :model="form"
+          label-width="90px"
+          ref="from"
+        >
+
+          <el-row :gutter="24">
+            <el-col :span="4">
+              <el-form-item label="阿里支付">
+                <el-upload
+                  class="avatar-uploader"
+                  name="file"
+                  :action="uploadPictureHost"
+                  :file-list="fileList"
+                  :show-file-list="false"
+                  :before-upload="beforeUpload"
+                  :on-success="fileSuccess_ali"
+                  :data="otherData"
+                >
+                  <img v-if="form.aliPayPhoto" :src="form.aliPayPhoto" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-col>
+            <el-col :span="4">
+              <el-form-item label="微信支付">
+                <el-upload
+                  class="avatar-uploader"
+                  name="file"
+                  :action="uploadPictureHost"
+                  :file-list="fileList"
+                  :show-file-list="false"
+                  :before-upload="beforeUpload"
+                  :on-success="fileSuccess_weixin"
+                  :data="otherData"
+                >
+                  <img v-if="form.weixinPayPhoto" :src="form.weixinPayPhoto" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
           <el-row :gutter="24">
             <el-col :span="6">
               <el-form-item label="网站评论">
-                <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.startComment" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+                <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.openComment" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="6">
+              <el-form-item label="网站打赏">
+                <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.openAdmiration" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="6">
+              <el-form-item label="移动端评论">
+                <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.openMobileComment" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="6">
+              <el-form-item label="移动端打赏">
+                <el-radio v-for="item in openDictList" :key="item.uid" v-model="form.openMobileAdmiration" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
               </el-form-item>
             </el-col>
           </el-row>
@@ -131,6 +175,7 @@
             <el-button type="primary" @click="submitForm()" v-permission="'/webConfig/editWebConfig'">保 存</el-button>
           </el-form-item>
         </el-form>
+
       </el-tab-pane>
 
       <el-tab-pane v-permission="'/webConfig/getWebConfig'">
@@ -187,9 +232,21 @@
         </el-form>
       </el-tab-pane>
 
+      <el-tab-pane label="友链申请模板" v-permission="'/webConfig/getWebConfig'">
+        <span slot="label"><i class="el-icon-edit"></i> 友链申请模板</span>
+        <div class="editor-container">
+          <CKEditor ref="editor" v-if="systemConfig.editorModel == '0'" :content="form.dashboardNotification" :height="500"></CKEditor>
+          <MarkdownEditor ref="editor" v-if="systemConfig.editorModel == '1'" :height="660" style="margin-top: 12px"></MarkdownEditor>
+        </div>
+        <div style="margin-top: 5px; margin-left: 10px;" >
+          <el-button type="primary" @click="submitForm()" v-permission="'/system/editMe'">保 存</el-button>
+        </div>
+      </el-tab-pane>
+
     </el-tabs>
 
     <CheckPhoto
+      v-if="!isFirstPhotoVisible"
       @choose_data="getChooseData"
       @cancelModel="cancelModel"
       :photoVisible="photoVisible"
@@ -206,11 +263,13 @@ import { getToken } from '@/utils/auth'
 import { getWebConfig, editWebConfig } from "@/api/webConfig";
 import { Loading } from 'element-ui';
 import {getListByDictType} from "@/api/sysDictData"
+import { getSystemConfig} from "@/api/systemConfig";
+import CKEditor from "@/components/CKEditor";
+import MarkdownEditor from "@/components/MarkdownEditor";
 
 export default {
   data() {
     return {
-      BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
       form: {
         name: "",
         title: "",
@@ -219,7 +278,7 @@ export default {
         author: "",
         logo: "",
         recordNum: "",
-        startComment: "1",
+        openComment: "1",
         aliPay: "",
         weixinPay: "",
         aliPayPhoto: "",
@@ -227,6 +286,7 @@ export default {
         showList: [],
         loginTypeList: []
       },
+      systemConfig: {},
       loadingInstance: null, // loading对象
       fileList: [],
       photoVisible: false, //控制图片选择器的显示
@@ -235,6 +295,7 @@ export default {
       icon: false, //控制删除图标的显示
       otherData: {},
       openDictList: [], //字典
+      isFirstPhotoVisible: true, // 图片选择器是否首次显示【用于懒加载】
       rules: {
         qqNumber: [
           {pattern:  /[1-9]([0-9]{5,11})/, message: '请输入正确的QQ号码'},
@@ -269,19 +330,18 @@ export default {
     }
   },
   components: {
-    CheckPhoto
+    CheckPhoto,
+    CKEditor,
+    MarkdownEditor
   },
   created() {
-
     // 获取配置
     this.getWebConfigFun();
 
     //图片上传地址
     this.uploadPictureHost = process.env.PICTURE_API + "/file/cropperPicture";
-
     // 查询字典
     this.getDictList()
-
     //其它数据
     this.otherData = {
       source: "picture",
@@ -292,6 +352,8 @@ export default {
       token: getToken()
     };
 
+    // 获取系统配置
+    this.getSystemConfigList();
   },
   methods: {
     /**
@@ -302,18 +364,21 @@ export default {
       var params = {};
       params.dictType = 'sys_normal_disable';
       getListByDictType(params).then(response => {
-        if (response.code == "success") {
+        if (response.code == this.$ECode.SUCCESS) {
           this.openDictList = response.data.list;
         }
       });
     },
+    handleClick(tab, event) {
+      //设置富文本内容
+      if (this.form.linkApplyTemplate) {
+        this.$refs.editor.setData(this.form.linkApplyTemplate);
+      }
+    },
     getWebConfigFun: function() {
       getWebConfig().then(response => {
-        console.log("得到的配置", response)
-        if (response.code == "success") {
-
+        if (response.code == this.$ECode.SUCCESS) {
           let data = response.data;
-
           if (data.showList) {
             let showList = JSON.parse(data.showList)
             let loginTypeList = JSON.parse(data.loginTypeList)
@@ -329,10 +394,13 @@ export default {
         }
       });
     },
-    //弹出选择图片框
-    checkPhoto: function() {
-      this.photoVisible = true;
-      console.log(this.photoVisible);
+    // 获取系统配置
+    getSystemConfigList: function() {
+      getSystemConfig().then(response => {
+        if (response.code == this.$ECode.SUCCESS) {
+          this.systemConfig = response.data;
+        }
+      });
     },
     getChooseData(data) {
       var that = this;
@@ -359,10 +427,11 @@ export default {
       this.photoList = [];
       this.fileIds = "";
       this.photoVisible = true;
+      this.isFirstPhotoVisible = false
     },
     submitForm: function() {
-
       let form = this.form;
+      form.linkApplyTemplate = this.$refs.editor.getData();
       form.logo = this.fileIds;
       form.showList = JSON.stringify(this.form.showList)
       form.loginTypeList = JSON.stringify(this.form.loginTypeList)
@@ -370,13 +439,13 @@ export default {
         if ((response.code = "success")) {
           this.$notify({
             title: "成功",
-            message: response.data,
+            message: response.message,
             type: "success"
           });
         } else {
           this.$notify.error({
             title: "警告",
-            message: response.data
+            message: response.message
           });
         }
         this.getWebConfigFun();
@@ -388,7 +457,7 @@ export default {
     },
     fileSuccess_ali: function(response, file, fileList) {
       console.log(response);
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         let fileList = response.data;
         if (fileList.length > 0) {
           this.form.aliPay = fileList[0].uid;
@@ -397,17 +466,13 @@ export default {
           this.form = {};
           this.form = tempForm;
         }
-        this.$message({
-          type: 'success',
-          message: "上传成功"
-        })
+        this.$commonUtil.message.success("上传成功")
       }
       this.loadingInstance.close();
     },
 
     fileSuccess_weixin: function(response, file, fileList) {
-
-      if (response.code == "success") {
+      if (response.code == this.$ECode.SUCCESS) {
         let fileList = response.data;
         if (fileList.length > 0) {
           this.form.weixinPay = fileList[0].uid;
@@ -416,10 +481,7 @@ export default {
           this.form = {};
           this.form = tempForm;
         }
-        this.$message({
-          type: 'success',
-          message: "上传成功"
-        })
+        this.$commonUtil.message.success("上传成功")
       }
       this.loadingInstance.close();
     }

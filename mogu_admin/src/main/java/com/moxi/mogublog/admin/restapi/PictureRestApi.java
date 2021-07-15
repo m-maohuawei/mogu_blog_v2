@@ -3,7 +3,6 @@ package com.moxi.mogublog.admin.restapi;
 
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.PictureService;
 import com.moxi.mogublog.xo.vo.PictureVO;
@@ -25,12 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <p>
  * 图片表 RestApi
- * </p>
  *
- * @author xzx19950624@qq.com
- * @since 2018年9月17日16:21:43
+ * @author 陌溪
+ * @date 2018年9月17日16:21:43
  */
 @RestController
 @RequestMapping("/picture")
@@ -39,7 +36,7 @@ import java.util.List;
 public class PictureRestApi {
 
     @Autowired
-    PictureService pictureService;
+    private PictureService pictureService;
 
     @AuthorityVerify
     @ApiOperation(value = "获取图片列表", notes = "获取图片列表", response = String.class)
@@ -48,7 +45,8 @@ public class PictureRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-        return ResultUtil.result(SysConf.SUCCESS, pictureService.getPageList(pictureVO));
+        log.info("获取图片列表:", pictureVO);
+        return ResultUtil.successWithData(pictureService.getPageList(pictureVO));
     }
 
     @AuthorityVerify
@@ -58,6 +56,7 @@ public class PictureRestApi {
     public String add(@Validated({Insert.class}) @RequestBody List<PictureVO> pictureVOList, BindingResult result) {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("添加图片:", pictureVOList);
         return pictureService.addPicture(pictureVOList);
     }
 
@@ -66,9 +65,9 @@ public class PictureRestApi {
     @ApiOperation(value = "编辑图片", notes = "编辑图片", response = String.class)
     @PostMapping("/edit")
     public String edit(@Validated({Update.class}) @RequestBody PictureVO pictureVO, BindingResult result) {
-
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("编辑图片:{}", pictureVO);
         return pictureService.editPicture(pictureVO);
     }
 
@@ -76,7 +75,8 @@ public class PictureRestApi {
     @OperationLogger(value = "删除图片")
     @ApiOperation(value = "删除图片", notes = "删除图片", response = String.class)
     @PostMapping("/delete")
-    public String delete(@RequestBody PictureVO pictureVO, BindingResult result) {
+    public String delete(@RequestBody PictureVO pictureVO) {
+        log.info("删除图片:{}", pictureVO);
         return pictureService.deleteBatchPicture(pictureVO);
     }
 
@@ -87,6 +87,7 @@ public class PictureRestApi {
     public String setCover(@Validated({Update.class}) @RequestBody PictureVO pictureVO, BindingResult result) {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
+        log.info("设置图片分类封面:{}", pictureVO);
         return pictureService.setPictureCover(pictureVO);
     }
 }

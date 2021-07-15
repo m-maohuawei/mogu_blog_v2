@@ -3,7 +3,6 @@ package com.moxi.mogublog.admin.restapi;
 import com.moxi.mogublog.admin.annotion.AuthorityVerify.AuthorityVerify;
 import com.moxi.mogublog.admin.annotion.AvoidRepeatableCommit.AvoidRepeatableCommit;
 import com.moxi.mogublog.admin.annotion.OperationLogger.OperationLogger;
-import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.xo.service.RoleService;
 import com.moxi.mogublog.xo.vo.RoleVO;
@@ -24,12 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p>
  * 角色表 RestApi
- * </p>
  *
- * @author xuzhixiang
- * @since 2018-09-04
+ * @author 陌溪
+ * @date 2018-09-04
  */
 @RestController
 @RequestMapping("/role")
@@ -48,7 +45,7 @@ public class RoleRestApi {
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         log.info("获取角色信息列表");
-        return ResultUtil.result(SysConf.SUCCESS, roleService.getPageList(roleVO));
+        return ResultUtil.successWithData(roleService.getPageList(roleVO));
     }
 
     @AvoidRepeatableCommit
@@ -57,7 +54,6 @@ public class RoleRestApi {
     @ApiOperation(value = "新增角色信息", notes = "新增角色信息")
     @PostMapping("/add")
     public String add(@Validated({Insert.class}) @RequestBody RoleVO roleVO, BindingResult result) {
-
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         return roleService.addRole(roleVO);
@@ -68,7 +64,6 @@ public class RoleRestApi {
     @ApiOperation(value = "更新角色信息", notes = "更新角色信息")
     @PostMapping("/edit")
     public String update(@Validated({Update.class}) @RequestBody RoleVO roleVO, BindingResult result) {
-
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         return roleService.editRole(roleVO);
@@ -79,11 +74,8 @@ public class RoleRestApi {
     @ApiOperation(value = "删除角色信息", notes = "删除角色信息")
     @PostMapping("/delete")
     public String delete(@Validated({Delete.class}) @RequestBody RoleVO roleVO, BindingResult result) {
-
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
         return roleService.deleteRole(roleVO);
     }
-
-
 }

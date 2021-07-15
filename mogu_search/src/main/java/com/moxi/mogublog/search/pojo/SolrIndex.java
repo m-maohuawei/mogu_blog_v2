@@ -20,6 +20,12 @@
 //    @Field("id")
 //    private String id;
 //
+//    @Field("oid")
+//    private Integer oid;
+//
+//    @Field("blog_type")
+//    private String type;
+//
 //    /**
 //     * 图片Uid
 //     */
@@ -37,6 +43,12 @@
 //     */
 //    @Field("blog_summary")
 //    private String summary;
+//
+//    /**
+//     * 博客简介
+//     */
+//    @Field("blog_content")
+//    private String blogContent;
 //
 //    /**
 //     * 标签名

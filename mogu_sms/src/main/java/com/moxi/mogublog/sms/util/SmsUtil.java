@@ -10,6 +10,7 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -26,13 +27,18 @@ import java.util.Date;
  * 备注:Demo工程编码采用UTF-8
  * 国际短信发送请勿参照此DEMO
  */
+@RefreshScope
 @Component
 public class SmsUtil {
 
-    //产品名称:云通信短信API产品,开发者无需替换
-    static final String product = "Dysmsapi";
-    //产品域名,开发者无需替换
-    static final String domain = "dysmsapi.aliyuncs.com";
+    /**
+     * 产品名称:云通信短信API产品,开发者无需替换
+     */
+    static final String PRODUCT = "Dysmsapi";
+    /**
+     * 产品域名,开发者无需替换
+     */
+    static final String DOMAIN = "dysmsapi.aliyuncs.com";
 
     @Value(value = "${accessKeyId}")
     private String accessKeyId;
@@ -55,7 +61,7 @@ public class SmsUtil {
 
         //初始化acsClient,暂不支持region化
         IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
-        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", PRODUCT, DOMAIN);
         IAcsClient acsClient = new DefaultAcsClient(profile);
 
         //组装请求对象-具体描述见控制台-文档部分内容
@@ -90,7 +96,7 @@ public class SmsUtil {
 
         //初始化acsClient,暂不支持region化
         IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
-        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", PRODUCT, DOMAIN);
         IAcsClient acsClient = new DefaultAcsClient(profile);
 
         //组装请求对象
